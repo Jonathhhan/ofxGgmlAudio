@@ -15,6 +15,7 @@
 - Add a backend-neutral stream chunker for live audio windows.
 - Add lightweight stream feature helpers for RMS, peak, zero-crossing rate, and
   silence checks.
+- Add a deterministic baseline VAD gate on top of stream features.
 
 ## Next Milestones
 
@@ -40,3 +41,5 @@ The first generic stream surface is intentionally backend-neutral:
   model windows with a configurable hop size and timestamps.
 - `ofxGgmlAudioFeatures` provides tiny feature extraction for meters, VAD gates,
   and classifier inputs without pulling in a model runtime.
+- `ofxGgmlAudioFeatures::estimateVoiceActivity()` is a baseline heuristic gate;
+  model-backed VAD can replace it later without changing stream windowing.

@@ -40,6 +40,8 @@ and emits fixed-size overlapping stream requests. That keeps model windowing,
 hop size, and timestamp handling out of examples and backend adapters.
 `ofxGgmlAudioFeatures` adds small RMS, peak, zero-crossing, and mean helpers for
 quick VAD gates, meters, smoke tests, and lightweight classifier inputs.
+It also includes `estimateVoiceActivity()` as a deterministic baseline gate
+before a model-backed VAD is available.
 
 ## Whisper Backend
 

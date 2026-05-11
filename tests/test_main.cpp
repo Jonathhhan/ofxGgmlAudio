@@ -141,6 +141,33 @@ int main() {
 		return 1;
 	}
 
+	ofxGgmlAudioVadSettings vadSettings;
+	vadSettings.rmsThreshold = 0.2f;
+	vadSettings.peakThreshold = 0.4f;
+	ofxGgmlAudioStreamRequest vadRequest;
+	vadRequest.format.sampleRate = 4;
+	vadRequest.format.channels = 1;
+	vadRequest.samples = { -0.5f, 0.5f, 0.5f, 0.5f };
+	const auto activeVad = ofxGgmlAudioFeatures::estimateVoiceActivity(
+		ofxGgmlAudioFeatures::analyze(vadRequest),
+		vadSettings);
+	if (!activeVad.active || activeVad.score <= 0.9f) {
+		std::cerr << "active VAD was not detected\n";
+		return 1;
+	}
+	const auto silentVad = ofxGgmlAudioFeatures::estimateVoiceActivity(
+		ofxGgmlAudioFeatures::analyze(silentFrame),
+		vadSettings);
+	if (silentVad.active || silentVad.score > 0.2f) {
+		std::cerr << "silent VAD was reported active\n";
+		return 1;
+	}
+	const auto requestVad = ofxGgmlAudioFeatures::estimateVoiceActivity(vadRequest, vadSettings);
+	if (!requestVad.active) {
+		std::cerr << "request VAD overload did not detect activity\n";
+		return 1;
+	}
+
 	ofxGgmlAudioWhisperBackend backend;
 	if (backend.getBackendName() != "whisper.cpp") {
 		std::cerr << "unexpected whisper backend name\n";

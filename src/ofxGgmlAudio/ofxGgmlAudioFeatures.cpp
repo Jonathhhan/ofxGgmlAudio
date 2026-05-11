@@ -4,6 +4,13 @@
 #include <cmath>
 
 namespace {
+	float normalizedRatio(float value, float threshold) {
+		if (threshold <= 0.0f) {
+			return value > 0.0f ? 1.0f : 0.0f;
+		}
+		return std::min(1.0f, std::max(0.0f, value / threshold));
+	}
+
 	ofxGgmlAudioFeatureFrame analyzeSamples(
 		const ofxGgmlAudioStreamFormat & format,
 		const std::vector<float> & samples,
@@ -65,6 +72,35 @@ namespace ofxGgmlAudioFeatures {
 
 	bool isProbablySilent(const ofxGgmlAudioFeatureFrame & features, float rmsThreshold) {
 		return features.rms < rmsThreshold;
+	}
+
+	ofxGgmlAudioVadResult estimateVoiceActivity(
+		const ofxGgmlAudioFeatureFrame & features,
+		const ofxGgmlAudioVadSettings & settings) {
+		ofxGgmlAudioVadResult result;
+		result.rms = features.rms;
+		result.peak = features.peak;
+		result.zeroCrossingRate = features.zeroCrossingRate;
+
+		const auto rmsScore = normalizedRatio(features.rms, settings.rmsThreshold);
+		const auto peakScore = normalizedRatio(features.peak, settings.peakThreshold);
+		const auto crossingInRange =
+			features.zeroCrossingRate >= settings.minZeroCrossingRate &&
+			features.zeroCrossingRate <= settings.maxZeroCrossingRate;
+		const auto crossingScore = crossingInRange ? 1.0f : 0.0f;
+
+		result.score = (rmsScore * 0.55f) + (peakScore * 0.35f) + (crossingScore * 0.10f);
+		result.active =
+			features.rms >= settings.rmsThreshold &&
+			features.peak >= settings.peakThreshold &&
+			crossingInRange;
+		return result;
+	}
+
+	ofxGgmlAudioVadResult estimateVoiceActivity(
+		const ofxGgmlAudioStreamRequest & request,
+		const ofxGgmlAudioVadSettings & settings) {
+		return estimateVoiceActivity(analyze(request), settings);
 	}
 
 	std::vector<float> toVector(const ofxGgmlAudioFeatureFrame & features) {
