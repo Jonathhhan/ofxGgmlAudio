@@ -21,6 +21,40 @@ int main() {
 		return 1;
 	}
 
+	ofxGgmlAudioStreamRequest streamRequest;
+	if (ofxGgmlAudioUtils::hasSamples(streamRequest)) {
+		std::cerr << "empty stream request reported as configured\n";
+		return 1;
+	}
+
+	streamRequest.task = ofxGgmlAudioTask::Denoising;
+	streamRequest.format.sampleRate = 48000;
+	streamRequest.format.channels = 2;
+	streamRequest.samples = { 0.0f, 0.1f, 0.2f, 0.3f, 0.4f, 0.5f };
+	if (!ofxGgmlAudioUtils::hasSamples(streamRequest)) {
+		std::cerr << "configured stream request reported as empty\n";
+		return 1;
+	}
+	if (ofxGgmlAudioUtils::getFrameCount(streamRequest) != 3) {
+		std::cerr << "unexpected stream frame count\n";
+		return 1;
+	}
+	const auto durationSeconds = ofxGgmlAudioUtils::getDurationSeconds(streamRequest);
+	if (durationSeconds <= 0.0 || durationSeconds > 0.001) {
+		std::cerr << "unexpected stream duration\n";
+		return 1;
+	}
+	if (ofxGgmlAudioUtils::getTaskName(streamRequest.task) != "denoising") {
+		std::cerr << "unexpected stream task name\n";
+		return 1;
+	}
+	const auto streamDescription = ofxGgmlAudioUtils::describe(streamRequest);
+	if (streamDescription.find("denoising") == std::string::npos ||
+		streamDescription.find("48000") == std::string::npos) {
+		std::cerr << "stream description did not include task/sample rate\n";
+		return 1;
+	}
+
 	ofxGgmlAudioWhisperBackend backend;
 	if (backend.getBackendName() != "whisper.cpp") {
 		std::cerr << "unexpected whisper backend name\n";

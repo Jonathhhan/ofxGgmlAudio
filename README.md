@@ -29,6 +29,12 @@ The lane should not stop at transcription. Planned audio tasks include:
 - speaker, emotion, turn-taking, and conversational-agent audio cues
 - VAD and lightweight audio event detection
 
+The public API now has a backend-neutral stream request shape for those tasks:
+`ofxGgmlAudioStreamRequest`, `ofxGgmlAudioStreamResult`,
+`ofxGgmlAudioStreamFormat`, and `ofxGgmlAudioTask`. Concrete backends can map
+those plain C++ types to Whisper, denoisers, classifiers, or voice models
+without changing the Core addon.
+
 ## Whisper Backend
 
 `whisper.cpp` belongs here as the first opt-in speech backend. Keep the public
