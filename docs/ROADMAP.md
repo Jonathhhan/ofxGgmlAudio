@@ -6,7 +6,9 @@
 - Keep `ofxGgmlSpeechTranscribeExample` as the first root-level smoke example.
 - Keep `ofxGgmlCore` as the only required library dependency; examples may depend on `ofxImGui`.
 - Add local validation and headless tests.
-- Decide that whisper.cpp lives in `ofxGgmlSpeech` first, not in a separate
+- Decide that this lane should become `ofxGgmlAudio`, with the current
+  `ofxGgmlSpeech` repo as the temporary host.
+- Decide that whisper.cpp lives in the audio lane first, not in a separate
   `ofxGgmlWhisper` addon.
 - Add explicit whisper.cpp setup scripts and an unavailable-by-default
   `ofxGgmlSpeechWhisperBackend` boundary.
@@ -16,5 +18,8 @@
 - Wire WAV/PCM decoding into `ofxGgmlSpeechWhisperBackend::transcribe()`.
 - Add one useful openFrameworks example that runs with a user-provided Whisper
   model and audio file.
+- Add a streaming audio request/result shape for real-time inference.
+- Add task lanes for denoising, voice conversion, emotion cues, VAD, and audio
+  event detection.
 - Add focused tests around request/result helpers.
 - Document the `clone -> setup -> run` path from a new user's point of view.
