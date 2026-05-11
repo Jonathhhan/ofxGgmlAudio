@@ -15,12 +15,13 @@ Family map: https://jonathhhan.github.io/ofxGgmlCore/
 
 ## Example
 
-`ofxGgmlSpeechTranscribeExample` is a root-level transcription request smoke test. Generate it with the openFrameworks projectGenerator using addons `ofxGgmlSpeech` and `ofxGgmlCore`.
+`ofxGgmlSpeechTranscribeExample` is a root-level transcription request smoke test. Generate it with the openFrameworks projectGenerator using addons `ofxGgmlSpeech`, `ofxGgmlCore`, and `ofxImGui`.
 
 ## Dependencies
 
 - openFrameworks
 - `ofxGgmlCore`
+- `ofxImGui` for examples
 
 ## Validate
 
