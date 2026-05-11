@@ -71,7 +71,7 @@ $scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $addonRoot = Resolve-Path (Join-Path $scriptRoot "..")
 $testsDir = Join-Path $addonRoot "tests"
 if ([string]::IsNullOrWhiteSpace($BuildDir)) {
-	$BuildDir = Join-Path ([System.IO.Path]::GetTempPath()) "ofxGgmlSpeech-tests"
+	$BuildDir = Join-Path ([System.IO.Path]::GetTempPath()) "ofxGgmlAudio-tests"
 }
 
 if ($Clean -and (Test-Path -LiteralPath $BuildDir)) {
@@ -90,19 +90,19 @@ if (Test-WindowsHost) {
 	$test = "ctest --test-dir $(Convert-ToCmdArgument $BuildDir) --output-on-failure"
 	$command = "call $(Convert-ToCmdArgument $vsDevCmd) -arch=x64 -host_arch=x64 >nul && $configure && $build && $test"
 
-	Write-Step "Configuring and running ofxGgmlSpeech tests with Visual Studio tools"
-	Invoke-CheckedCmd "ofxGgmlSpeech tests" $command
+	Write-Step "Configuring and running ofxGgmlAudio tests with Visual Studio tools"
+	Invoke-CheckedCmd "ofxGgmlAudio tests" $command
 } else {
-	Write-Step "Configuring ofxGgmlSpeech tests"
-	Invoke-CheckedNative "cmake configure ofxGgmlSpeech tests" {
+	Write-Step "Configuring ofxGgmlAudio tests"
+	Invoke-CheckedNative "cmake configure ofxGgmlAudio tests" {
 		cmake -S $testsDir -B $BuildDir -DCMAKE_BUILD_TYPE=$Configuration
 	}
-	Write-Step "Building ofxGgmlSpeech tests"
-	Invoke-CheckedNative "cmake build ofxGgmlSpeech tests" {
+	Write-Step "Building ofxGgmlAudio tests"
+	Invoke-CheckedNative "cmake build ofxGgmlAudio tests" {
 		cmake --build $BuildDir --config $Configuration
 	}
-	Write-Step "Running ofxGgmlSpeech tests"
-	Invoke-CheckedNative "ctest ofxGgmlSpeech tests" {
+	Write-Step "Running ofxGgmlAudio tests"
+	Invoke-CheckedNative "ctest ofxGgmlAudio tests" {
 		ctest --test-dir $BuildDir --output-on-failure
 	}
 }

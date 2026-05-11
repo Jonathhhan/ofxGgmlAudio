@@ -1,14 +1,14 @@
 # Architecture
 
-`ofxGgmlSpeech` is the current repository for the planned `ofxGgmlAudio` lane.
-It owns audio-specific workflow code. It should use `ofxGgmlCore` for stable
-runtime primitives and keep model-family workflow details out of core.
+`ofxGgmlAudio` owns audio-specific workflow code. It should use `ofxGgmlCore`
+for stable runtime primitives and keep model-family workflow details out of
+core.
 
 ## Dependency Direction
 
 ```text
 openFrameworks app
-  -> ofxGgmlAudio / ofxGgmlSpeech
+  -> ofxGgmlAudio
       -> ofxGgmlCore
 ```
 
@@ -33,6 +33,6 @@ No dependency should point from `ofxGgmlCore` back to this addon.
 ## Whisper
 
 `whisper.cpp` is the first backend owned here. It should stay behind
-`ofxGgmlSpeechWhisperBackend` and explicit `scripts/build-whisper.*` setup
+`ofxGgmlAudioWhisperBackend` and explicit `scripts/build-whisper.*` setup
 scripts. Do not create `ofxGgmlWhisper` unless the Whisper layer grows into a
 large reusable runtime with multiple consumers outside audio workflows.

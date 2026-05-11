@@ -3,13 +3,13 @@
 #include <string>
 #include <vector>
 
-struct ofxGgmlSpeechRequest {
+struct ofxGgmlAudioRequest {
 	std::string audioPath;
 	std::string language;
 	std::vector<std::string> tags;
 };
 
-struct ofxGgmlSpeechResult {
+struct ofxGgmlAudioResult {
 	bool success = false;
 	std::string text;
 	std::string error;

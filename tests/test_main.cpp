@@ -1,27 +1,27 @@
-#include "ofxGgmlSpeech.h"
+#include "ofxGgmlAudio.h"
 
 #include <iostream>
 
 int main() {
-	ofxGgmlSpeechRequest request;
-	if (ofxGgmlSpeechUtils::hasInput(request)) {
+	ofxGgmlAudioRequest request;
+	if (ofxGgmlAudioUtils::hasInput(request)) {
 		std::cerr << "empty request reported as configured\n";
 		return 1;
 	}
 
 	request.audioPath = "voice/sample.wav";
-	if (!ofxGgmlSpeechUtils::hasInput(request)) {
+	if (!ofxGgmlAudioUtils::hasInput(request)) {
 		std::cerr << "configured request reported as empty\n";
 		return 1;
 	}
 
-	const auto description = ofxGgmlSpeechUtils::describe(request);
+	const auto description = ofxGgmlAudioUtils::describe(request);
 	if (description.find(request.audioPath) == std::string::npos) {
 		std::cerr << "description did not include request input\n";
 		return 1;
 	}
 
-	ofxGgmlSpeechWhisperBackend backend;
+	ofxGgmlAudioWhisperBackend backend;
 	if (backend.getBackendName() != "whisper.cpp") {
 		std::cerr << "unexpected whisper backend name\n";
 		return 1;
@@ -30,7 +30,7 @@ int main() {
 		std::cerr << "whisper backend reported loaded before setup\n";
 		return 1;
 	}
-	ofxGgmlSpeechWhisperSettings settings;
+	ofxGgmlAudioWhisperSettings settings;
 	const auto setupResult = backend.setup(settings);
 	if (setupResult) {
 		std::cerr << "whisper backend setup succeeded without model/runtime\n";

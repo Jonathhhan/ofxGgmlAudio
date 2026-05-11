@@ -1,9 +1,8 @@
-# ofxGgmlSpeech
+# ofxGgmlAudio
 
-`ofxGgmlSpeech` is the current repository for the planned `ofxGgmlAudio` lane:
-speech recognition, transcription, timestamps, subtitles, diarization,
-real-time audio inference, denoising, voice conversion, emotion cues, and voice
-workflow helpers on top of `ofxGgmlCore`.
+`ofxGgmlAudio` is the companion addon for speech recognition, transcription,
+timestamps, subtitles, diarization, real-time audio inference, denoising, voice
+conversion, emotion cues, and voice workflow helpers on top of `ofxGgmlCore`.
 
 `ofxGgmlCore` stays the dependency. This addon owns audio-specific workflow code
 so core can stay small and boring.
@@ -15,7 +14,7 @@ Family map: https://jonathhhan.github.io/ofxGgmlCore/
 - define small request/result types
 - keep one root-level smoke example
 - keep whisper.cpp as the first explicit backend, not a separate addon
-- make the rename target explicit: `ofxGgmlAudio`, with Whisper as one module
+- keep Whisper as one module inside the broader audio lane
 - keep generated models, media, builds, and IDE files out of git
 - validate the addon with local headless tests
 
@@ -34,7 +33,7 @@ The lane should not stop at transcription. Planned audio tasks include:
 
 `whisper.cpp` belongs here as the first opt-in speech backend. Keep the public
 request/result API generic, then plug concrete Whisper setup and transcription
-behind `ofxGgmlSpeechWhisperBackend`.
+behind `ofxGgmlAudioWhisperBackend`.
 
 Runtime files are generated locally:
 
@@ -50,12 +49,12 @@ The script defaults to `-Auto`, generates a small CMake package for the sibling
 Pass `-BundledGgml` only for upstream experiments where whisper.cpp should
 build against its own ggml copy.
 
-Compile app projects with `OFXGGMLSPEECH_WITH_WHISPER` after generating the
+Compile app projects with `OFXGGMLAUDIO_WITH_WHISPER` after generating the
 runtime. Until then, the backend compiles as a clear unavailable stub.
 
 ## Example
 
-`ofxGgmlSpeechTranscribeExample` is a root-level transcription request smoke test. Generate it with the openFrameworks projectGenerator using addons `ofxGgmlSpeech`, `ofxGgmlCore`, and `ofxImGui`.
+`ofxGgmlAudioTranscribeExample` is a root-level transcription request smoke test. Generate it with the openFrameworks projectGenerator using addons `ofxGgmlAudio`, `ofxGgmlCore`, and `ofxImGui`.
 
 ## Dependencies
 

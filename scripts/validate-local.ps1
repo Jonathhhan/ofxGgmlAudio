@@ -43,19 +43,19 @@ Write-Step "Checking addon skeleton"
 Assert-Path (Join-Path $addonRoot "addon_config.mk") "addon config"
 Assert-Path (Join-Path $addonRoot "README.md") "README"
 Assert-Path (Join-Path $addonRoot "LICENSE") "license"
-Assert-Path (Join-Path $addonRoot "src\ofxGgmlSpeech.h") "public header"
-Assert-Path (Join-Path $addonRoot "src\ofxGgmlSpeech\ofxGgmlSpeechTypes.h") "types header"
-Assert-Path (Join-Path $addonRoot "src\ofxGgmlSpeech\ofxGgmlSpeechUtils.h") "utility header"
-Assert-Path (Join-Path $addonRoot "src\ofxGgmlSpeech\ofxGgmlSpeechUtils.cpp") "utility source"
-Assert-Path (Join-Path $addonRoot "src\ofxGgmlSpeech\ofxGgmlSpeechWhisperBackend.h") "Whisper backend header"
-Assert-Path (Join-Path $addonRoot "src\ofxGgmlSpeech\ofxGgmlSpeechWhisperBackend.cpp") "Whisper backend source"
+Assert-Path (Join-Path $addonRoot "src\ofxGgmlAudio.h") "public header"
+Assert-Path (Join-Path $addonRoot "src\ofxGgmlAudio\ofxGgmlAudioTypes.h") "types header"
+Assert-Path (Join-Path $addonRoot "src\ofxGgmlAudio\ofxGgmlAudioUtils.h") "utility header"
+Assert-Path (Join-Path $addonRoot "src\ofxGgmlAudio\ofxGgmlAudioUtils.cpp") "utility source"
+Assert-Path (Join-Path $addonRoot "src\ofxGgmlAudio\ofxGgmlAudioWhisperBackend.h") "Whisper backend header"
+Assert-Path (Join-Path $addonRoot "src\ofxGgmlAudio\ofxGgmlAudioWhisperBackend.cpp") "Whisper backend source"
 
 Write-Step "Checking dependency layout"
 Assert-Path (Join-Path $addonsRoot "ofxGgmlCore") "sibling ofxGgmlCore addon" -Directory
 Assert-Path (Join-Path $addonsRoot "ofxImGui") "sibling ofxImGui addon for examples" -Directory
 
 Write-Step "Checking example layout"
-$exampleRoot = Join-Path $addonRoot "ofxGgmlSpeechTranscribeExample"
+$exampleRoot = Join-Path $addonRoot "ofxGgmlAudioTranscribeExample"
 Assert-Path $exampleRoot "root-level smoke example" -Directory
 Assert-Path (Join-Path $exampleRoot "addons.make") "smoke example addons.make"
 Assert-FileContains (Join-Path $exampleRoot "addons.make") "(?m)^ofxImGui\s*$" "smoke example addons.make"
@@ -86,9 +86,9 @@ Write-Step "Checking generated artifact hygiene"
 $forbidden = @(
 	"build",
 	".vs",
-	"ofxGgmlSpeechTranscribeExample\bin",
-	"ofxGgmlSpeechTranscribeExample\obj",
-	"ofxGgmlSpeechTranscribeExample\.vs",
+	"ofxGgmlAudioTranscribeExample\bin",
+	"ofxGgmlAudioTranscribeExample\obj",
+	"ofxGgmlAudioTranscribeExample\.vs",
 	"libs\whisper\.source",
 	"libs\whisper\build",
 	"models"
@@ -110,4 +110,4 @@ if ($LASTEXITCODE -ne 0) {
 	throw "Headless tests failed with exit code $LASTEXITCODE"
 }
 
-Write-Step "ofxGgmlSpeech local validation passed"
+Write-Step "ofxGgmlAudio local validation passed"

@@ -1,3 +1,3 @@
 ofxGgmlCore
-ofxGgmlSpeech
+ofxGgmlAudio
 ofxImGui

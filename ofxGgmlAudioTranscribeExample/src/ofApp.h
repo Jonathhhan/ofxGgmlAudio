@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ofMain.h"
-#include "ofxGgmlSpeech.h"
+#include "ofxGgmlAudio.h"
 
 class ofApp : public ofBaseApp {
 public:
@@ -9,6 +9,6 @@ public:
 	void draw() override;
 
 private:
-	ofxGgmlSpeechRequest request;
+	ofxGgmlAudioRequest request;
 	std::string status;
 };

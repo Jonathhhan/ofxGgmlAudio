@@ -1,9 +1,9 @@
 meta:
-	ADDON_NAME = ofxGgmlSpeech
-	ADDON_DESCRIPTION = Companion addon for local speech recognition and voice workflows on top of ofxGgmlCore
+	ADDON_NAME = ofxGgmlAudio
+	ADDON_DESCRIPTION = Companion addon for local audio inference, speech recognition, and voice workflows on top of ofxGgmlCore
 	ADDON_AUTHOR = Jonathan Frank
-	ADDON_TAGS = "ggml,ai,speech,whisper,transcription"
-	ADDON_URL = https://github.com/Jonathhhan/ofxGgmlSpeech
+	ADDON_TAGS = "ggml,ai,audio,speech,whisper,transcription,denoising,voice"
+	ADDON_URL = https://github.com/Jonathhhan/ofxGgmlAudio
 
 common:
 	ADDON_DEPENDENCIES += ofxGgmlCore
