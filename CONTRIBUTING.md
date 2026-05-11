@@ -1,6 +1,8 @@
 # Contributing
 
-`ofxGgmlSpeech` is a companion addon. Keep speech-specific workflow code here and keep generic ggml/runtime primitives in `ofxGgmlCore`.
+`ofxGgmlSpeech` is a companion addon. Keep speech-specific workflow code here,
+including whisper.cpp integration, and keep generic ggml/runtime primitives in
+`ofxGgmlCore`.
 
 Before changing public API or scripts:
 

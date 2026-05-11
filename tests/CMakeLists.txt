@@ -6,7 +6,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_executable(ofxGgmlSpeech_tests
 	test_main.cpp
-	../src/ofxGgmlSpeech/ofxGgmlSpeechUtils.cpp)
+	../src/ofxGgmlSpeech/ofxGgmlSpeechUtils.cpp
+	../src/ofxGgmlSpeech/ofxGgmlSpeechWhisperBackend.cpp)
 
 target_include_directories(ofxGgmlSpeech_tests PRIVATE
 	${CMAKE_CURRENT_SOURCE_DIR}/../src)

@@ -16,6 +16,7 @@ No dependency should point from `ofxGgmlCore` back to `ofxGgmlSpeech`.
 
 - speech-specific request/result helpers
 - model-specific preprocessing and postprocessing
+- whisper.cpp runtime setup and backend integration
 - focused root-level examples
 - local media/model workflow documentation
 
@@ -24,3 +25,10 @@ No dependency should point from `ofxGgmlCore` back to `ofxGgmlSpeech`.
 - ggml runtime setup and backend selection
 - generic tensor, graph, model metadata, and result types
 - unrelated companion workflows
+
+## Whisper
+
+`whisper.cpp` is the first backend owned here. It should stay behind
+`ofxGgmlSpeechWhisperBackend` and explicit `scripts/build-whisper.*` setup
+scripts. Do not create `ofxGgmlWhisper` unless the Whisper layer grows into a
+large reusable runtime with multiple consumers outside speech workflows.
