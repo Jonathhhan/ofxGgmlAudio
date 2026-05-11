@@ -38,6 +38,8 @@ without changing the Core addon.
 For live input, `ofxGgmlAudioStreamChunker` accumulates interleaved float audio
 and emits fixed-size overlapping stream requests. That keeps model windowing,
 hop size, and timestamp handling out of examples and backend adapters.
+`ofxGgmlAudioFeatures` adds small RMS, peak, zero-crossing, and mean helpers for
+quick VAD gates, meters, smoke tests, and lightweight classifier inputs.
 
 ## Whisper Backend
 

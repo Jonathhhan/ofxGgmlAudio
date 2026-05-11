@@ -13,6 +13,8 @@
   `ofxGgmlAudioWhisperBackend` boundary.
 - Add a streaming audio request/result shape for real-time inference.
 - Add a backend-neutral stream chunker for live audio windows.
+- Add lightweight stream feature helpers for RMS, peak, zero-crossing rate, and
+  silence checks.
 
 ## Next Milestones
 
@@ -36,3 +38,5 @@ The first generic stream surface is intentionally backend-neutral:
   or errors without forcing one backend model family.
 - `ofxGgmlAudioStreamChunker` turns openFrameworks audio callbacks into fixed
   model windows with a configurable hop size and timestamps.
+- `ofxGgmlAudioFeatures` provides tiny feature extraction for meters, VAD gates,
+  and classifier inputs without pulling in a model runtime.

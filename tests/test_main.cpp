@@ -1,5 +1,6 @@
 #include "ofxGgmlAudio.h"
 
+#include <cmath>
 #include <iostream>
 
 int main() {
@@ -106,6 +107,37 @@ int main() {
 	invalidSettings.maxBufferedSeconds = 1.0;
 	if (invalidSettings.isValid() || chunker.setup(invalidSettings)) {
 		std::cerr << "invalid chunker settings were accepted\n";
+		return 1;
+	}
+
+	ofxGgmlAudioStreamRequest featureRequest;
+	featureRequest.format.sampleRate = 4;
+	featureRequest.format.channels = 1;
+	featureRequest.samples = { -1.0f, 1.0f, -1.0f, 1.0f };
+	const auto features = ofxGgmlAudioFeatures::analyze(featureRequest);
+	if (std::abs(features.rms - 1.0f) > 0.0001f ||
+		std::abs(features.peak - 1.0f) > 0.0001f ||
+		std::abs(features.zeroCrossingRate - 1.0f) > 0.0001f ||
+		std::abs(features.durationSeconds - 1.0) > 0.0001) {
+		std::cerr << "unexpected audio features\n";
+		return 1;
+	}
+	if (ofxGgmlAudioFeatures::isProbablySilent(features)) {
+		std::cerr << "loud features reported as silent\n";
+		return 1;
+	}
+	const auto featureVector = ofxGgmlAudioFeatures::toVector(features);
+	if (featureVector.size() != 4 || featureVector[0] != features.rms) {
+		std::cerr << "unexpected feature vector\n";
+		return 1;
+	}
+
+	ofxGgmlAudioFrame silentFrame;
+	silentFrame.format.sampleRate = 16000;
+	silentFrame.format.channels = 1;
+	silentFrame.samples = { 0.0f, 0.0f, 0.0f };
+	if (!ofxGgmlAudioFeatures::isProbablySilent(ofxGgmlAudioFeatures::analyze(silentFrame))) {
+		std::cerr << "silent frame was not reported as silent\n";
 		return 1;
 	}
 

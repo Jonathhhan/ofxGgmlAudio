@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_executable(ofxGgmlAudio_tests
 	test_main.cpp
+	../src/ofxGgmlAudio/ofxGgmlAudioFeatures.cpp
 	../src/ofxGgmlAudio/ofxGgmlAudioStreamChunker.cpp
 	../src/ofxGgmlAudio/ofxGgmlAudioUtils.cpp
 	../src/ofxGgmlAudio/ofxGgmlAudioWhisperBackend.cpp)
