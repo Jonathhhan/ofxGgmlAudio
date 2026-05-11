@@ -12,6 +12,7 @@
 - Add explicit whisper.cpp setup scripts and an unavailable-by-default
   `ofxGgmlAudioWhisperBackend` boundary.
 - Add a streaming audio request/result shape for real-time inference.
+- Add a backend-neutral stream chunker for live audio windows.
 
 ## Next Milestones
 
@@ -33,3 +34,5 @@ The first generic stream surface is intentionally backend-neutral:
   optional model paths, voice IDs, and hints.
 - `ofxGgmlAudioStreamResult` can return generated samples, labels, scores, text,
   or errors without forcing one backend model family.
+- `ofxGgmlAudioStreamChunker` turns openFrameworks audio callbacks into fixed
+  model windows with a configurable hop size and timestamps.

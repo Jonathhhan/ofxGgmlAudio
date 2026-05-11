@@ -35,6 +35,10 @@ The public API now has a backend-neutral stream request shape for those tasks:
 those plain C++ types to Whisper, denoisers, classifiers, or voice models
 without changing the Core addon.
 
+For live input, `ofxGgmlAudioStreamChunker` accumulates interleaved float audio
+and emits fixed-size overlapping stream requests. That keeps model windowing,
+hop size, and timestamp handling out of examples and backend adapters.
+
 ## Whisper Backend
 
 `whisper.cpp` belongs here as the first opt-in speech backend. Keep the public

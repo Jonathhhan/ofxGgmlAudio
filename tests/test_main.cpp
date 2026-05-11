@@ -55,6 +55,60 @@ int main() {
 		return 1;
 	}
 
+	ofxGgmlAudioStreamChunker chunker;
+	ofxGgmlAudioStreamChunkerSettings chunkerSettings;
+	chunkerSettings.format.sampleRate = 10;
+	chunkerSettings.format.channels = 1;
+	chunkerSettings.windowSeconds = 0.4;
+	chunkerSettings.hopSeconds = 0.2;
+	chunkerSettings.maxBufferedSeconds = 1.0;
+	if (!chunker.setup(chunkerSettings)) {
+		std::cerr << "valid chunker settings failed setup\n";
+		return 1;
+	}
+	if (chunkerSettings.getWindowFrameCount() != 4 ||
+		chunkerSettings.getHopFrameCount() != 2) {
+		std::cerr << "unexpected chunker frame settings\n";
+		return 1;
+	}
+	chunker.pushSamples({ 0.0f, 1.0f, 2.0f }, 12.0);
+	if (chunker.hasNext()) {
+		std::cerr << "chunker emitted a partial window\n";
+		return 1;
+	}
+	chunker.pushSamples({ 3.0f, 4.0f, 5.0f, 6.0f });
+	ofxGgmlAudioStreamRequest chunk;
+	if (!chunker.popNext(chunk, ofxGgmlAudioTask::VoiceActivityDetection)) {
+		std::cerr << "chunker did not emit a full window\n";
+		return 1;
+	}
+	if (chunk.task != ofxGgmlAudioTask::VoiceActivityDetection ||
+		chunk.samples.size() != 4 ||
+		chunk.samples.front() != 0.0f ||
+		chunk.samples.back() != 3.0f ||
+		chunk.timestampSeconds != 12.0) {
+		std::cerr << "unexpected first chunk contents\n";
+		return 1;
+	}
+	if (!chunker.popNext(chunk, ofxGgmlAudioTask::VoiceActivityDetection)) {
+		std::cerr << "chunker did not emit overlapping window\n";
+		return 1;
+	}
+	if (chunk.samples.front() != 2.0f ||
+		chunk.samples.back() != 5.0f ||
+		chunk.timestampSeconds <= 12.1) {
+		std::cerr << "unexpected overlapping chunk contents\n";
+		return 1;
+	}
+
+	ofxGgmlAudioStreamChunkerSettings invalidSettings = chunkerSettings;
+	invalidSettings.windowSeconds = 2.0;
+	invalidSettings.maxBufferedSeconds = 1.0;
+	if (invalidSettings.isValid() || chunker.setup(invalidSettings)) {
+		std::cerr << "invalid chunker settings were accepted\n";
+		return 1;
+	}
+
 	ofxGgmlAudioWhisperBackend backend;
 	if (backend.getBackendName() != "whisper.cpp") {
 		std::cerr << "unexpected whisper backend name\n";
