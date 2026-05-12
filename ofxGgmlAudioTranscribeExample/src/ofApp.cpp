@@ -23,12 +23,26 @@ namespace {
 		return value.substr(first, (last - first) + 1);
 	}
 
-	bool isAutoLanguage(const std::string & value) {
+	std::string lowerText(const std::string & value) {
 		std::string lowered = value;
 		std::transform(lowered.begin(), lowered.end(), lowered.begin(), [](unsigned char c) {
 			return static_cast<char>(std::tolower(c));
 		});
-		return lowered == "auto";
+		return lowered;
+	}
+
+	bool isAutoLanguage(const std::string & value) {
+		return lowerText(value) == "auto";
+	}
+
+	bool isEnabledFlag(const std::string & value) {
+		const auto lowered = lowerText(trimText(value));
+		return lowered == "1" || lowered == "true" || lowered == "on" || lowered == "yes";
+	}
+
+	bool isDisabledFlag(const std::string & value) {
+		const auto lowered = lowerText(trimText(value));
+		return lowered == "0" || lowered == "false" || lowered == "off" || lowered == "no";
 	}
 
 	std::string normalizePath(const std::filesystem::path & path) {
@@ -52,9 +66,9 @@ void ofApp::setup() {
 	const auto modelFromEnv = trimText(envValue("OFXGGML_AUDIO_MODEL"));
 	const auto audioFromEnv = trimText(envValue("OFXGGML_AUDIO_FILE"));
 	const auto languageFromEnv = trimText(envValue("OFXGGML_AUDIO_LANGUAGE"));
-	const auto threadsFromEnv = envValue("OFXGGML_AUDIO_THREADS");
-	const auto translateFromEnv = envValue("OFXGGML_AUDIO_TRANSLATE");
-	const auto timestampsFromEnv = envValue("OFXGGML_AUDIO_TIMESTAMPS");
+	const auto threadsFromEnv = trimText(envValue("OFXGGML_AUDIO_THREADS"));
+	const auto translateFromEnv = trimText(envValue("OFXGGML_AUDIO_TRANSLATE"));
+	const auto timestampsFromEnv = trimText(envValue("OFXGGML_AUDIO_TIMESTAMPS"));
 	copyToBuffer(modelPathBuffer, !modelFromEnv.empty() ? modelFromEnv : findFirstFile(
 		{ "models", "../models", "../../models", "bin/data/models", "bin/data" },
 		{ ".bin", ".gguf" }));
@@ -65,9 +79,9 @@ void ofApp::setup() {
 	if (!threadsFromEnv.empty()) {
 		threads = ofClamp(ofToInt(threadsFromEnv), 0, 32);
 	}
-	translate = translateFromEnv == "1" || translateFromEnv == "true" || translateFromEnv == "on";
+	translate = isEnabledFlag(translateFromEnv);
 	if (!timestampsFromEnv.empty()) {
-		timestamps = !(timestampsFromEnv == "0" || timestampsFromEnv == "false" || timestampsFromEnv == "off");
+		timestamps = !isDisabledFlag(timestampsFromEnv);
 	}
 
 	status = "idle";
