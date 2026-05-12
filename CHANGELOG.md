@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Added an optional headless Whisper transcription smoke test for verifying the
+  generated runtime, model, sample WAV, and native backend without launching the
+  openFrameworks example.
+
 ## 1.0.1 - 2026-05-12
 
 - Added independent Audio addon version metadata.

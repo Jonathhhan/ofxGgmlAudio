@@ -151,6 +151,22 @@ export OFXGGML_AUDIO_FILE=/audio/speech.wav
 
 ## 6. Validate
 
+Use the headless Whisper smoke test when you want to verify the native backend
+without launching a GUI. It expects the generated Whisper runtime, the default
+tiny model, and the sample WAV:
+
+Windows:
+
+```powershell
+scripts\test-whisper-transcribe.bat
+```
+
+macOS/Linux:
+
+```sh
+./scripts/test-whisper-transcribe.sh
+```
+
 Before pushing changes:
 
 Windows:
@@ -190,3 +206,6 @@ scripts\clean-transcribe-example.bat
   `-WithWhisper`.
 - If the doctor reports missing assets, run `scripts\download-whisper-assets.bat`
   or `./scripts/download-whisper-assets.sh`.
+- If the headless smoke test fails to find `ask not`, rerun it with
+  `-ExpectedText ""` to check whether Whisper is producing different but valid
+  text for your model.

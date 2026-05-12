@@ -82,6 +82,21 @@ By default this downloads `models\ggml-tiny.en.bin` from
 `ggerganov/whisper.cpp` on Hugging Face and `audio\jfk.wav` from
 `ggml-org/whisper.cpp`.
 
+After building the runtime and downloading assets, run the headless smoke test
+to verify real transcription without opening the openFrameworks example:
+
+```powershell
+scripts\test-whisper-transcribe.bat
+scripts\test-whisper-transcribe.bat -DryRun
+```
+
+On macOS/Linux:
+
+```sh
+./scripts/test-whisper-transcribe.sh
+./scripts/test-whisper-transcribe.sh -DryRun
+```
+
 The first native transcription path is intentionally narrow: `transcribe()`
 accepts WAV files with 16-bit PCM or 32-bit float samples, mixes multi-channel
 input to mono, linearly resamples to Whisper's 16 kHz input rate, and passes
