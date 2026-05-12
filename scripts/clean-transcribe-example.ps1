@@ -1,4 +1,5 @@
 param(
+	[string]$ExampleRoot = "",
 	[switch]$DryRun
 )
 
@@ -37,7 +38,10 @@ function Remove-GeneratedPath {
 $scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $addonRoot = Resolve-Path -LiteralPath (Join-Path $scriptRoot "..")
 $exampleName = "ofxGgmlAudioTranscribeExample"
-$exampleRoot = (Resolve-Path -LiteralPath (Join-Path $addonRoot $exampleName)).Path
+if ([string]::IsNullOrWhiteSpace($ExampleRoot)) {
+	$ExampleRoot = Join-Path $addonRoot $exampleName
+}
+$exampleRoot = (Resolve-Path -LiteralPath $ExampleRoot).Path
 
 $generatedPaths = @(
 	"bin",

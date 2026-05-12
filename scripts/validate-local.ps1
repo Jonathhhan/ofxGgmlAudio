@@ -100,6 +100,9 @@ Assert-Path (Join-Path $scriptRoot "build-transcribe-example.sh") "transcribe ex
 Assert-Path (Join-Path $scriptRoot "clean-transcribe-example.ps1") "transcribe example clean script"
 Assert-Path (Join-Path $scriptRoot "clean-transcribe-example.bat") "transcribe example clean Windows wrapper"
 Assert-Path (Join-Path $scriptRoot "clean-transcribe-example.sh") "transcribe example clean shell wrapper"
+Assert-Path (Join-Path $scriptRoot "test-clean-transcribe-example.ps1") "transcribe example clean regression test"
+Assert-Path (Join-Path $scriptRoot "test-clean-transcribe-example.bat") "transcribe example clean regression Windows wrapper"
+Assert-Path (Join-Path $scriptRoot "test-clean-transcribe-example.sh") "transcribe example clean regression shell wrapper"
 Assert-Path (Join-Path $scriptRoot "run-transcribe-example.ps1") "transcribe example run script"
 Assert-Path (Join-Path $scriptRoot "run-transcribe-example.bat") "transcribe example Windows run wrapper"
 Assert-Path (Join-Path $scriptRoot "run-transcribe-example.sh") "transcribe example shell run wrapper"
@@ -155,7 +158,7 @@ Write-Step "Checking transcribe example launch dry-runs"
 & (Join-Path $scriptRoot "test-launch-dry-run.ps1")
 
 Write-Step "Checking transcribe example clean dry-run"
-& (Join-Path $scriptRoot "clean-transcribe-example.ps1") -DryRun
+& (Join-Path $scriptRoot "test-clean-transcribe-example.ps1")
 
 Write-Step "Checking transcribe quickstart dry-runs"
 & (Join-Path $scriptRoot "test-transcribe-quickstart-dry-run.ps1")
