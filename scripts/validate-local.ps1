@@ -77,6 +77,9 @@ Assert-Path (Join-Path $scriptRoot "setup-whisper.sh") "Whisper shell setup wrap
 Assert-Path (Join-Path $scriptRoot "doctor-audio.ps1") "Audio doctor script"
 Assert-Path (Join-Path $scriptRoot "doctor-audio.bat") "Audio doctor Windows wrapper"
 Assert-Path (Join-Path $scriptRoot "doctor-audio.sh") "Audio doctor shell wrapper"
+Assert-Path (Join-Path $scriptRoot "test-doctor-audio.ps1") "Audio doctor smoke test"
+Assert-Path (Join-Path $scriptRoot "test-doctor-audio.bat") "Audio doctor smoke test Windows wrapper"
+Assert-Path (Join-Path $scriptRoot "test-doctor-audio.sh") "Audio doctor smoke test shell wrapper"
 Assert-Path (Join-Path $scriptRoot "test-whisper-setup-dry-run.ps1") "Whisper setup dry-run test"
 Assert-Path (Join-Path $scriptRoot "test-whisper-setup-dry-run.bat") "Whisper setup dry-run Windows wrapper"
 Assert-Path (Join-Path $scriptRoot "test-whisper-setup-dry-run.sh") "Whisper setup dry-run shell wrapper"
@@ -130,6 +133,9 @@ foreach ($relative in $forbidden) {
 
 Assert-FileContains (Join-Path $addonRoot ".gitignore") "(?m)^models/\s*$" "gitignore"
 Assert-FileContains (Join-Path $addonRoot ".gitignore") "(?m)^audio/\s*$" "gitignore"
+
+Write-Step "Checking audio doctor report"
+& (Join-Path $scriptRoot "test-doctor-audio.ps1")
 
 Write-Step "Checking whisper.cpp setup dry-runs"
 & (Join-Path $scriptRoot "test-whisper-setup-dry-run.ps1")
