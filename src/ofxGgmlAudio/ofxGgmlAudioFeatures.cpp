@@ -23,13 +23,19 @@ namespace {
 			return features;
 		}
 
+		const auto channels = static_cast<std::size_t>(format.channels);
+		const auto completeSampleCount = samples.size() - (samples.size() % channels);
+		if (completeSampleCount == 0) {
+			return features;
+		}
+
 		double sum = 0.0;
 		double sumSquares = 0.0;
 		float peak = 0.0f;
 		int zeroCrossings = 0;
 		float previous = samples.front();
 
-		for (std::size_t i = 0; i < samples.size(); ++i) {
+		for (std::size_t i = 0; i < completeSampleCount; ++i) {
 			const auto sample = samples[i];
 			sum += static_cast<double>(sample);
 			sumSquares += static_cast<double>(sample) * static_cast<double>(sample);
@@ -43,17 +49,16 @@ namespace {
 			previous = sample;
 		}
 
-		const auto sampleCount = static_cast<double>(samples.size());
+		const auto sampleCount = static_cast<double>(completeSampleCount);
 		features.mean = static_cast<float>(sum / sampleCount);
 		features.rms = static_cast<float>(std::sqrt(sumSquares / sampleCount));
 		features.peak = peak;
-		features.zeroCrossingRate = samples.size() > 1
+		features.zeroCrossingRate = completeSampleCount > 1
 			? static_cast<float>(static_cast<double>(zeroCrossings) /
-				static_cast<double>(samples.size() - 1))
+				static_cast<double>(completeSampleCount - 1))
 			: 0.0f;
 
-		const auto channels = std::max(1, format.channels);
-		const auto frameCount = static_cast<int>(samples.size() / static_cast<std::size_t>(channels));
+		const auto frameCount = static_cast<int>(completeSampleCount / channels);
 		features.durationSeconds = format.sampleRate > 0
 			? static_cast<double>(frameCount) / static_cast<double>(format.sampleRate)
 			: 0.0;

@@ -195,6 +195,18 @@ int main() {
 		return 1;
 	}
 
+	ofxGgmlAudioStreamRequest incompleteFeatureRequest;
+	incompleteFeatureRequest.format.sampleRate = 10;
+	incompleteFeatureRequest.format.channels = 2;
+	incompleteFeatureRequest.samples = { 0.0f, 0.0f, 0.0f, 0.0f, 1.0f };
+	const auto incompleteFeatures = ofxGgmlAudioFeatures::analyze(incompleteFeatureRequest);
+	if (std::abs(incompleteFeatures.peak) > 0.0001f ||
+		std::abs(incompleteFeatures.rms) > 0.0001f ||
+		std::abs(incompleteFeatures.durationSeconds - 0.2) > 0.0001) {
+		std::cerr << "incomplete feature frame included dangling sample\n";
+		return 1;
+	}
+
 	ofxGgmlAudioFrame silentFrame;
 	silentFrame.format.sampleRate = 16000;
 	silentFrame.format.channels = 1;
