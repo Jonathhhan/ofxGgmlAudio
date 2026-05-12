@@ -91,6 +91,26 @@ function Invoke-Checked {
 	}
 }
 
+function Invoke-ProjectGeneratorForExample {
+	param(
+		[string]$ProjectGenerator,
+		[string]$OfRoot,
+		[string]$ExampleRoot,
+		[string]$ProjectPath,
+		[string]$ExampleName
+	)
+	& $ProjectGenerator "-o$OfRoot" "-aofxGgmlCore,ofxGgmlAudio,ofxImGui" "-pvs" $ExampleRoot
+	$exitCode = $LASTEXITCODE
+	if ($exitCode -eq 0) {
+		return
+	}
+	if (Test-Path -LiteralPath $ProjectPath -PathType Leaf) {
+		Write-Warning "projectGenerator exited with code $exitCode after writing $ExampleName.vcxproj; continuing with project repair and build."
+		return
+	}
+	throw "projectGenerator $ExampleName failed with exit code $exitCode"
+}
+
 function Get-RelativeProjectPath {
 	param(
 		[string]$ProjectDir,
@@ -479,9 +499,7 @@ if (Test-WindowsHost) {
 			throw "Visual Studio project not found and projectGenerator.exe was not found under $ofRoot."
 		}
 		Write-Step "Generating $exampleName Visual Studio project"
-		Invoke-Checked "projectGenerator $exampleName" {
-			& $projectGenerator "-o$ofRoot" "-aofxGgmlCore,ofxGgmlAudio,ofxImGui" "-pvs" $exampleRoot
-		}
+		Invoke-ProjectGeneratorForExample -ProjectGenerator $projectGenerator -OfRoot $ofRoot -ExampleRoot $exampleRoot -ProjectPath $projectPath -ExampleName $exampleName
 	}
 	if ($WithWhisper) {
 		Assert-WhisperRuntime -AudioRoot $addonRoot
