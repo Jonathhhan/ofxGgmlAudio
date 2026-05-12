@@ -27,6 +27,18 @@ function Normalize-PathText {
 	return $PathText.Trim().Trim('"')
 }
 
+function Test-EnabledFlag {
+	param([string]$Value)
+	$normalized = (Normalize-PathText $Value).ToLowerInvariant()
+	return @("1", "true", "on", "yes").Contains($normalized)
+}
+
+function Test-DisabledFlag {
+	param([string]$Value)
+	$normalized = (Normalize-PathText $Value).ToLowerInvariant()
+	return @("0", "false", "off", "no").Contains($normalized)
+}
+
 function Find-FirstFile {
 	param(
 		[string[]]$Directories,
@@ -124,13 +136,22 @@ if (![string]::IsNullOrWhiteSpace($Audio)) {
 
 $env:OFXGGML_AUDIO_LANGUAGE = $Language
 $env:OFXGGML_AUDIO_THREADS = [string]$Threads
-$env:OFXGGML_AUDIO_TRANSLATE = if ($Translate) { "1" } else { "0" }
-$env:OFXGGML_AUDIO_TIMESTAMPS = if ($NoTimestamps) { "0" } else { "1" }
+
+$translateEnabled = $Translate.IsPresent -or (!$Translate.IsPresent -and (Test-EnabledFlag $env:OFXGGML_AUDIO_TRANSLATE))
+$timestampsEnabled = $true
+if ($NoTimestamps.IsPresent) {
+	$timestampsEnabled = $false
+} elseif (![string]::IsNullOrWhiteSpace($env:OFXGGML_AUDIO_TIMESTAMPS)) {
+	$timestampsEnabled = !(Test-DisabledFlag $env:OFXGGML_AUDIO_TIMESTAMPS)
+}
+
+$env:OFXGGML_AUDIO_TRANSLATE = if ($translateEnabled) { "1" } else { "0" }
+$env:OFXGGML_AUDIO_TIMESTAMPS = if ($timestampsEnabled) { "1" } else { "0" }
 
 Write-Step "Language: $Language"
 Write-Step "Threads: $Threads"
-Write-Step "Translate: $(if ($Translate) { 'ON' } else { 'OFF' })"
-Write-Step "Timestamps: $(if ($NoTimestamps) { 'OFF' } else { 'ON' })"
+Write-Step "Translate: $(if ($translateEnabled) { 'ON' } else { 'OFF' })"
+Write-Step "Timestamps: $(if ($timestampsEnabled) { 'ON' } else { 'OFF' })"
 
 if ($DryRun) {
 	Write-Step "Executable: $exampleExe"

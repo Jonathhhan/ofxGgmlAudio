@@ -82,4 +82,39 @@ Assert-Contains $runOutput "Timestamps: OFF" "Launch dry-run"
 Assert-Contains $runOutput "Executable:" "Launch dry-run"
 Assert-NotContains $runOutput "Starting ofxGgmlAudioTranscribeExample" "Launch dry-run"
 
+Write-Step "Transcribe example env flag dry-run"
+$previousTranslate = $env:OFXGGML_AUDIO_TRANSLATE
+$previousTimestamps = $env:OFXGGML_AUDIO_TIMESTAMPS
+try {
+	$env:OFXGGML_AUDIO_TRANSLATE = " yes "
+	$env:OFXGGML_AUDIO_TIMESTAMPS = " off "
+	$envOutput = & (Join-Path $scriptRoot "run-transcribe-example.ps1") `
+		-DryRun `
+		-Model $modelPath `
+		-Audio $audioPath `
+		-Language "auto" `
+		-Threads 2 `
+		-Configuration $Configuration `
+		-Platform $Platform *>&1 | ForEach-Object { $_.ToString() }
+	if (!$?) {
+		throw "Transcribe example env flag dry-run failed."
+	}
+	Assert-Contains $envOutput "Language: auto" "Env flag dry-run"
+	Assert-Contains $envOutput "Threads: 2" "Env flag dry-run"
+	Assert-Contains $envOutput "Translate: ON" "Env flag dry-run"
+	Assert-Contains $envOutput "Timestamps: OFF" "Env flag dry-run"
+	Assert-Contains $envOutput "Executable:" "Env flag dry-run"
+} finally {
+	if ($null -eq $previousTranslate) {
+		Remove-Item Env:OFXGGML_AUDIO_TRANSLATE -ErrorAction SilentlyContinue
+	} else {
+		$env:OFXGGML_AUDIO_TRANSLATE = $previousTranslate
+	}
+	if ($null -eq $previousTimestamps) {
+		Remove-Item Env:OFXGGML_AUDIO_TIMESTAMPS -ErrorAction SilentlyContinue
+	} else {
+		$env:OFXGGML_AUDIO_TIMESTAMPS = $previousTimestamps
+	}
+}
+
 Write-Step "Launch dry-run smoke coverage passed"
