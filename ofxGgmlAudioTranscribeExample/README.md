@@ -6,17 +6,18 @@ The example has editable model and audio fields, logs the selected paths with
 `ofLog`, and runs transcription on a background thread so the UI remains
 responsive while whisper.cpp works.
 
-Build the optional runtime first:
+First run:
+
+```powershell
+..\scripts\quickstart-transcribe-example.bat
+```
+
+For manual setup, build the optional runtime, download local assets, then
+compile the generated project with `OFXGGMLAUDIO_WITH_WHISPER` enabled:
 
 ```powershell
 ..\scripts\build-whisper.bat
 ..\scripts\download-whisper-assets.bat
-```
-
-Then compile the generated project with `OFXGGMLAUDIO_WITH_WHISPER` enabled and
-link the generated whisper runtime:
-
-```powershell
 ..\scripts\run-transcribe-example.bat -Build -WithWhisper
 ```
 

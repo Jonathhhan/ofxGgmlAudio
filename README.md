@@ -93,14 +93,22 @@ with editable model/audio paths and `ofLog` output. Generate it with the
 openFrameworks projectGenerator using addons `ofxGgmlAudio`, `ofxGgmlCore`, and
 `ofxImGui`.
 
+First run:
+
+```powershell
+scripts\quickstart-transcribe-example.bat
+scripts\quickstart-transcribe-example.bat -DryRun
+```
+
+The quickstart builds the optional Whisper runtime, downloads the default tiny
+model and sample WAV, builds the openFrameworks example with `-WithWhisper`,
+then launches it. For manual control, run the lower-level scripts directly:
+
 ```powershell
 scripts\build-whisper.bat
 scripts\download-whisper-assets.bat
 scripts\run-transcribe-example.bat -Build -WithWhisper
 ```
-
-Use `scripts\run-transcribe-example.bat -DryRun` to check the launch plan
-without starting the example.
 
 ## Dependencies
 

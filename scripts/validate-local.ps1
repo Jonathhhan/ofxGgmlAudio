@@ -89,9 +89,15 @@ Assert-Path (Join-Path $scriptRoot "build-transcribe-example.sh") "transcribe ex
 Assert-Path (Join-Path $scriptRoot "run-transcribe-example.ps1") "transcribe example run script"
 Assert-Path (Join-Path $scriptRoot "run-transcribe-example.bat") "transcribe example Windows run wrapper"
 Assert-Path (Join-Path $scriptRoot "run-transcribe-example.sh") "transcribe example shell run wrapper"
+Assert-Path (Join-Path $scriptRoot "quickstart-transcribe-example.ps1") "transcribe quickstart script"
+Assert-Path (Join-Path $scriptRoot "quickstart-transcribe-example.bat") "transcribe quickstart Windows wrapper"
+Assert-Path (Join-Path $scriptRoot "quickstart-transcribe-example.sh") "transcribe quickstart shell wrapper"
 Assert-Path (Join-Path $scriptRoot "test-launch-dry-run.ps1") "transcribe example launch dry-run test"
 Assert-Path (Join-Path $scriptRoot "test-launch-dry-run.bat") "transcribe example launch dry-run Windows wrapper"
 Assert-Path (Join-Path $scriptRoot "test-launch-dry-run.sh") "transcribe example launch dry-run shell wrapper"
+Assert-Path (Join-Path $scriptRoot "test-transcribe-quickstart-dry-run.ps1") "transcribe quickstart dry-run test"
+Assert-Path (Join-Path $scriptRoot "test-transcribe-quickstart-dry-run.bat") "transcribe quickstart dry-run Windows wrapper"
+Assert-Path (Join-Path $scriptRoot "test-transcribe-quickstart-dry-run.sh") "transcribe quickstart dry-run shell wrapper"
 Assert-Path (Join-Path $addonRoot "libs\whisper\bin\.gitkeep") "Whisper bin placeholder"
 Assert-Path (Join-Path $addonRoot "libs\whisper\include\.gitkeep") "Whisper include placeholder"
 Assert-Path (Join-Path $addonRoot "libs\whisper\lib\.gitkeep") "Whisper lib placeholder"
@@ -130,6 +136,9 @@ Write-Step "Checking Whisper asset download dry-runs"
 
 Write-Step "Checking transcribe example launch dry-runs"
 & (Join-Path $scriptRoot "test-launch-dry-run.ps1")
+
+Write-Step "Checking transcribe quickstart dry-runs"
+& (Join-Path $scriptRoot "test-transcribe-quickstart-dry-run.ps1")
 
 Write-Step "Running headless tests"
 & (Join-Path $scriptRoot "test-addon.ps1")
