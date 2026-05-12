@@ -67,20 +67,36 @@ foreach ($relative in $generated) {
 	New-File (Join-Path $exampleRoot $relative)
 }
 
-Write-Step "Transcribe example clean dry-run regression"
-$dryRunOutput = & $script -ExampleRoot $exampleRoot -DryRun 2>&1 6>&1 | ForEach-Object { $_.ToString() } | Out-String
-if ($dryRunOutput -notmatch "remove: bin") {
-	throw "clean dry-run did not list generated bin output.`n$dryRunOutput"
-}
-Assert-Path (Join-Path $exampleRoot "bin") "dry-run generated bin"
+try {
+	Write-Step "Transcribe example clean dry-run regression"
+	$dryRunOutput = & $script -ExampleRoot $exampleRoot -DryRun 2>&1 6>&1 | ForEach-Object { $_.ToString() } | Out-String
+	if ($dryRunOutput -notmatch "remove: bin") {
+		throw "clean dry-run did not list generated bin output.`n$dryRunOutput"
+	}
+	Assert-Path (Join-Path $exampleRoot "bin") "dry-run generated bin"
 
-Write-Step "Transcribe example clean remove regression"
-& $script -ExampleRoot $exampleRoot
-foreach ($relative in @("bin", "obj", ".vs", "dll", "icon.rc", "config.make", "Makefile", "ofxGgmlAudioTranscribeExample.sln", "ofxGgmlAudioTranscribeExample.vcxproj", "ofxGgmlAudioTranscribeExample.vcxproj.filters", "ofxGgmlAudioTranscribeExample.vcxproj.user", "ofxGgmlAudioTranscribeExample.xcodeproj")) {
-	Assert-Missing (Join-Path $exampleRoot $relative) $relative
-}
-Assert-Path (Join-Path $exampleRoot "src\ofApp.cpp") "source file"
-Assert-Path (Join-Path $exampleRoot "README.md") "README"
+	Write-Step "Transcribe example clean remove regression"
+	& $script -ExampleRoot $exampleRoot
+	foreach ($relative in @("bin", "obj", ".vs", "dll", "icon.rc", "config.make", "Makefile", "ofxGgmlAudioTranscribeExample.sln", "ofxGgmlAudioTranscribeExample.vcxproj", "ofxGgmlAudioTranscribeExample.vcxproj.filters", "ofxGgmlAudioTranscribeExample.vcxproj.user", "ofxGgmlAudioTranscribeExample.xcodeproj")) {
+		Assert-Missing (Join-Path $exampleRoot $relative) $relative
+	}
+	Assert-Path (Join-Path $exampleRoot "src\ofApp.cpp") "source file"
+	Assert-Path (Join-Path $exampleRoot "README.md") "README"
 
-Remove-Item -LiteralPath $scratchRoot -Recurse -Force
-Write-Step "Transcribe example clean regression passed"
+	Write-Step "Transcribe example clean missing-root regression"
+	$missingRootFailedClearly = $false
+	try {
+		& $script -ExampleRoot (Join-Path $scratchRoot "missing")
+	} catch {
+		$missingRootFailedClearly = $_.Exception.Message -match "directory was not found"
+	}
+	if (!$missingRootFailedClearly) {
+		throw "clean script did not fail clearly for a missing example root."
+	}
+
+	Write-Step "Transcribe example clean regression passed"
+} finally {
+	if (Test-Path -LiteralPath $scratchRoot) {
+		Remove-Item -LiteralPath $scratchRoot -Recurse -Force
+	}
+}
