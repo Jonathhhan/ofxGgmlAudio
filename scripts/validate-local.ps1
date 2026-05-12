@@ -77,6 +77,12 @@ Assert-Path (Join-Path $scriptRoot "setup-whisper.sh") "Whisper shell setup wrap
 Assert-Path (Join-Path $scriptRoot "test-whisper-setup-dry-run.ps1") "Whisper setup dry-run test"
 Assert-Path (Join-Path $scriptRoot "test-whisper-setup-dry-run.bat") "Whisper setup dry-run Windows wrapper"
 Assert-Path (Join-Path $scriptRoot "test-whisper-setup-dry-run.sh") "Whisper setup dry-run shell wrapper"
+Assert-Path (Join-Path $scriptRoot "download-whisper-assets.ps1") "Whisper asset download script"
+Assert-Path (Join-Path $scriptRoot "download-whisper-assets.bat") "Whisper asset download Windows wrapper"
+Assert-Path (Join-Path $scriptRoot "download-whisper-assets.sh") "Whisper asset download shell wrapper"
+Assert-Path (Join-Path $scriptRoot "test-whisper-assets-dry-run.ps1") "Whisper asset dry-run test"
+Assert-Path (Join-Path $scriptRoot "test-whisper-assets-dry-run.bat") "Whisper asset dry-run Windows wrapper"
+Assert-Path (Join-Path $scriptRoot "test-whisper-assets-dry-run.sh") "Whisper asset dry-run shell wrapper"
 Assert-Path (Join-Path $scriptRoot "build-transcribe-example.ps1") "transcribe example build script"
 Assert-Path (Join-Path $scriptRoot "build-transcribe-example.bat") "transcribe example Windows build wrapper"
 Assert-Path (Join-Path $scriptRoot "build-transcribe-example.sh") "transcribe example shell build wrapper"
@@ -103,8 +109,7 @@ $forbidden = @(
 	"ofxGgmlAudioTranscribeExample\obj",
 	"ofxGgmlAudioTranscribeExample\.vs",
 	"libs\whisper\.source",
-	"libs\whisper\build",
-	"models"
+	"libs\whisper\build"
 )
 
 foreach ($relative in $forbidden) {
@@ -114,8 +119,14 @@ foreach ($relative in $forbidden) {
 	}
 }
 
+Assert-FileContains (Join-Path $addonRoot ".gitignore") "(?m)^models/\s*$" "gitignore"
+Assert-FileContains (Join-Path $addonRoot ".gitignore") "(?m)^audio/\s*$" "gitignore"
+
 Write-Step "Checking whisper.cpp setup dry-runs"
 & (Join-Path $scriptRoot "test-whisper-setup-dry-run.ps1")
+
+Write-Step "Checking Whisper asset download dry-runs"
+& (Join-Path $scriptRoot "test-whisper-assets-dry-run.ps1")
 
 Write-Step "Checking transcribe example launch dry-runs"
 & (Join-Path $scriptRoot "test-launch-dry-run.ps1")

@@ -68,6 +68,18 @@ runtime. The transcribe build script exposes this as `-WithWhisper` and copies
 `whisper.dll` next to the example executable on Windows. Until then, the
 backend compiles as a clear unavailable stub.
 
+Models and sample media are also local-only:
+
+```powershell
+scripts\download-whisper-assets.bat
+scripts\download-whisper-assets.bat -DryRun
+scripts\download-whisper-assets.bat -Model base.en
+```
+
+By default this downloads `models\ggml-tiny.en.bin` from
+`ggerganov/whisper.cpp` on Hugging Face and `audio\jfk.wav` from
+`ggml-org/whisper.cpp`.
+
 The first native transcription path is intentionally narrow: `transcribe()`
 accepts WAV files with 16-bit PCM or 32-bit float samples, mixes multi-channel
 input to mono, linearly resamples to Whisper's 16 kHz input rate, and passes
@@ -83,7 +95,8 @@ openFrameworks projectGenerator using addons `ofxGgmlAudio`, `ofxGgmlCore`, and
 
 ```powershell
 scripts\build-whisper.bat
-scripts\run-transcribe-example.bat -Build -WithWhisper -Model C:\path\to\ggml-base.en.bin -Audio C:\path\to\speech.wav
+scripts\download-whisper-assets.bat
+scripts\run-transcribe-example.bat -Build -WithWhisper
 ```
 
 Use `scripts\run-transcribe-example.bat -DryRun` to check the launch plan
