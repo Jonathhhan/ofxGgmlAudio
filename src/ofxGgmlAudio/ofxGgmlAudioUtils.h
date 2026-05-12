@@ -12,6 +12,8 @@ namespace ofxGgmlAudioUtils {
 	std::string getTaskName(ofxGgmlAudioTask task);
 	std::string describe(const ofxGgmlAudioRequest & request);
 	std::string describe(const ofxGgmlAudioStreamRequest & request);
+	bool mixToMono(const ofxGgmlAudioStreamRequest & request, std::vector<float> & samples, std::string * error = nullptr);
+	bool resampleMono(const std::vector<float> & input, int sourceSampleRate, int targetSampleRate, std::vector<float> & output, std::string * error = nullptr);
 	bool loadWavFile(const std::string & path, ofxGgmlAudioFrame & frame, ofxGgmlAudioWavInfo * info = nullptr, std::string * error = nullptr);
 	ofxGgmlAudioStreamRequest toStreamRequest(const ofxGgmlAudioFrame & frame, ofxGgmlAudioTask task = ofxGgmlAudioTask::Transcription);
 }

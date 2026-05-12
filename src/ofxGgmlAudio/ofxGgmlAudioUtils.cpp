@@ -1,5 +1,7 @@
 #include "ofxGgmlAudioUtils.h"
 
+#include <algorithm>
+#include <cmath>
 #include <cstdint>
 #include <cstring>
 #include <fstream>
@@ -109,6 +111,72 @@ namespace ofxGgmlAudioUtils {
 		return getTaskName(request.task) + ": " +
 			std::to_string(getFrameCount(request)) + " frames at " +
 			std::to_string(request.format.sampleRate) + " Hz";
+	}
+
+	bool mixToMono(const ofxGgmlAudioStreamRequest & request, std::vector<float> & samples, std::string * error) {
+		samples.clear();
+		if (!hasSamples(request)) {
+			setError(error, "audio stream request has no samples");
+			return false;
+		}
+
+		const auto frameCount = getFrameCount(request);
+		if (frameCount <= 0) {
+			setError(error, "audio stream request has no complete frames");
+			return false;
+		}
+
+		samples.resize(static_cast<std::size_t>(frameCount));
+		if (request.format.channels == 1) {
+			std::copy_n(request.samples.begin(), static_cast<std::size_t>(frameCount), samples.begin());
+			return true;
+		}
+
+		for (int frame = 0; frame < frameCount; ++frame) {
+			float mixed = 0.0f;
+			for (int channel = 0; channel < request.format.channels; ++channel) {
+				const auto index = static_cast<std::size_t>(frame * request.format.channels + channel);
+				mixed += request.samples[index];
+			}
+			samples[static_cast<std::size_t>(frame)] = mixed / static_cast<float>(request.format.channels);
+		}
+		return true;
+	}
+
+	bool resampleMono(const std::vector<float> & input, int sourceSampleRate, int targetSampleRate, std::vector<float> & output, std::string * error) {
+		output.clear();
+		if (input.empty()) {
+			setError(error, "cannot resample empty audio");
+			return false;
+		}
+		if (sourceSampleRate <= 0 || targetSampleRate <= 0) {
+			setError(error, "cannot resample audio with invalid sample rates");
+			return false;
+		}
+		if (sourceSampleRate == targetSampleRate) {
+			output = input;
+			return true;
+		}
+
+		const auto outputSize = static_cast<std::size_t>(std::max(
+			1.0,
+			std::round(static_cast<double>(input.size()) *
+				static_cast<double>(targetSampleRate) /
+				static_cast<double>(sourceSampleRate))));
+		output.resize(outputSize);
+		const double sourceStep = static_cast<double>(sourceSampleRate) /
+			static_cast<double>(targetSampleRate);
+
+		for (std::size_t i = 0; i < output.size(); ++i) {
+			const double sourcePosition = static_cast<double>(i) * sourceStep;
+			const auto index = static_cast<std::size_t>(sourcePosition);
+			const auto nextIndex = std::min(index + 1, input.size() - 1);
+			const float fraction = static_cast<float>(sourcePosition - static_cast<double>(index));
+			const float current = input[std::min(index, input.size() - 1)];
+			const float next = input[nextIndex];
+			output[i] = current + ((next - current) * fraction);
+		}
+		return true;
 	}
 
 	bool loadWavFile(const std::string & path, ofxGgmlAudioFrame & frame, ofxGgmlAudioWavInfo * info, std::string * error) {

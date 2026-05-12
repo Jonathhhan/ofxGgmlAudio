@@ -38,33 +38,12 @@ namespace {
 			error = "whisper.cpp only handles transcription requests";
 			return false;
 		}
-		if (request.format.sampleRate != 16000) {
-			error = "whisper.cpp requires 16000 Hz audio; resampling is not wired yet";
+
+		std::vector<float> monoSamples;
+		if (!ofxGgmlAudioUtils::mixToMono(request, monoSamples, &error)) {
 			return false;
 		}
-		const auto frameCount = ofxGgmlAudioUtils::getFrameCount(request);
-		if (frameCount <= 0) {
-			error = "audio request did not contain a full frame";
-			return false;
-		}
-
-		samples.resize(static_cast<std::size_t>(frameCount));
-		if (request.format.channels == 1) {
-			for (int i = 0; i < frameCount; ++i) {
-				samples[static_cast<std::size_t>(i)] = request.samples[static_cast<std::size_t>(i)];
-			}
-			return true;
-		}
-
-		for (int frame = 0; frame < frameCount; ++frame) {
-			float mixed = 0.0f;
-			for (int channel = 0; channel < request.format.channels; ++channel) {
-				const auto index = static_cast<std::size_t>(frame * request.format.channels + channel);
-				mixed += request.samples[index];
-			}
-			samples[static_cast<std::size_t>(frame)] = mixed / static_cast<float>(request.format.channels);
-		}
-		return true;
+		return ofxGgmlAudioUtils::resampleMono(monoSamples, request.format.sampleRate, 16000, samples, &error);
 	}
 }
 

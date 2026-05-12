@@ -67,10 +67,10 @@ Compile app projects with `OFXGGMLAUDIO_WITH_WHISPER` after generating the
 runtime. Until then, the backend compiles as a clear unavailable stub.
 
 The first native transcription path is intentionally narrow: `transcribe()`
-accepts 16 kHz WAV files with 16-bit PCM or 32-bit float samples, mixes
-multi-channel input to mono, and passes float PCM to whisper.cpp. Other file
-types and sample rates fail with explicit errors until resampling and broader
-decoding are added.
+accepts WAV files with 16-bit PCM or 32-bit float samples, mixes multi-channel
+input to mono, linearly resamples to Whisper's 16 kHz input rate, and passes
+float PCM to whisper.cpp. Other file types fail with explicit errors until
+broader decoding is added.
 
 ## Example
 

@@ -16,13 +16,14 @@
 - Add lightweight stream feature helpers for RMS, peak, zero-crossing rate, and
   silence checks.
 - Add a deterministic baseline VAD gate on top of stream features.
-- Wire the first narrow Whisper transcription path for 16 kHz WAV input and
-  PCM stream requests.
+- Wire the first narrow Whisper transcription path for WAV input and PCM stream
+  requests.
+- Add dependency-free mono mixing and linear resampling to prepare PCM for
+  Whisper's 16 kHz input rate.
 
 ## Next Milestones
 
-- Add resampling and broader media decoding before claiming general audio-file
-  support.
+- Add broader media decoding before claiming general audio-file support.
 - Add one useful openFrameworks example that runs with a user-provided Whisper
   model and audio file.
 - Add task lanes for denoising, voice conversion, emotion cues, VAD, and audio

@@ -19,13 +19,12 @@ namespace {
 		output.put(static_cast<char>((value >> 24) & 0xff));
 	}
 
-	bool writeTestWav(const std::string& path) {
+	bool writeTestWav(const std::string& path, std::uint32_t sampleRate = 16000) {
 		std::ofstream output(path, std::ios::binary);
 		if (!output) {
 			return false;
 		}
 		constexpr std::uint16_t channels = 1;
-		constexpr std::uint32_t sampleRate = 16000;
 		constexpr std::uint16_t bitsPerSample = 16;
 		const std::int16_t samples[] = { -32768, 0, 32767, 16384 };
 		constexpr std::uint32_t dataSize = sizeof(samples);
@@ -217,6 +216,40 @@ int main() {
 		return 1;
 	}
 
+	ofxGgmlAudioStreamRequest stereoRequest;
+	stereoRequest.format.sampleRate = 48000;
+	stereoRequest.format.channels = 2;
+	stereoRequest.samples = { -1.0f, 1.0f, 0.5f, 0.5f, 1.0f, -0.5f };
+	std::vector<float> monoSamples;
+	std::string monoError;
+	if (!ofxGgmlAudioUtils::mixToMono(stereoRequest, monoSamples, &monoError) ||
+		monoSamples.size() != 3 ||
+		std::abs(monoSamples[0]) > 0.0001f ||
+		std::abs(monoSamples[1] - 0.5f) > 0.0001f ||
+		std::abs(monoSamples[2] - 0.25f) > 0.0001f) {
+		std::cerr << "stereo mono mix failed: " << monoError << "\n";
+		return 1;
+	}
+
+	std::vector<float> sourceSamples(480);
+	for (std::size_t i = 0; i < sourceSamples.size(); ++i) {
+		sourceSamples[i] = static_cast<float>(i);
+	}
+	std::vector<float> resampledSamples;
+	std::string resampleError;
+	if (!ofxGgmlAudioUtils::resampleMono(sourceSamples, 48000, 16000, resampledSamples, &resampleError) ||
+		resampledSamples.size() != 160 ||
+		std::abs(resampledSamples[1] - 3.0f) > 0.0001f) {
+		std::cerr << "linear resample failed: " << resampleError << "\n";
+		return 1;
+	}
+	std::vector<float> copiedSamples;
+	if (!ofxGgmlAudioUtils::resampleMono(sourceSamples, 16000, 16000, copiedSamples) ||
+		copiedSamples != sourceSamples) {
+		std::cerr << "same-rate resample did not copy input\n";
+		return 1;
+	}
+
 	const std::string wavPath = "ofxGgmlAudio_test_16k.wav";
 	if (!writeTestWav(wavPath)) {
 		std::cerr << "could not write test WAV\n";
@@ -248,6 +281,26 @@ int main() {
 	if (!ofxGgmlAudioUtils::hasSamples(wavStream) ||
 		ofxGgmlAudioUtils::getFrameCount(wavStream) != 4) {
 		std::cerr << "WAV stream conversion failed\n";
+		return 1;
+	}
+
+	const std::string wav48Path = "ofxGgmlAudio_test_48k.wav";
+	if (!writeTestWav(wav48Path, 48000)) {
+		std::cerr << "could not write 48k test WAV\n";
+		return 1;
+	}
+	ofxGgmlAudioFrame wav48Frame;
+	if (!ofxGgmlAudioUtils::loadWavFile(wav48Path, wav48Frame, nullptr, &wavError)) {
+		std::cerr << "could not load 48k test WAV: " << wavError << "\n";
+		std::remove(wav48Path.c_str());
+		return 1;
+	}
+	std::remove(wav48Path.c_str());
+	const auto wav48Stream = ofxGgmlAudioUtils::toStreamRequest(wav48Frame);
+	std::vector<float> wav48Mono;
+	if (!ofxGgmlAudioUtils::mixToMono(wav48Stream, wav48Mono, &monoError) ||
+		wav48Mono.size() != 4) {
+		std::cerr << "48k WAV mono mix failed: " << monoError << "\n";
 		return 1;
 	}
 
