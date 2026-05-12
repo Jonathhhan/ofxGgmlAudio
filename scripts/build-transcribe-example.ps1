@@ -2,6 +2,7 @@ param(
 	[string]$Configuration = "Release",
 	[string]$Platform = "x64",
 	[switch]$Clean,
+	[switch]$WithWhisper,
 	[switch]$DryRun
 )
 
@@ -217,12 +218,149 @@ function Add-IncludeDirectory {
 	return $changed
 }
 
+function Get-OrCreateProjectChild {
+	param(
+		[xml]$Doc,
+		[System.Xml.XmlNode]$Parent,
+		[string]$Name
+	)
+	$child = $Parent.SelectSingleNode("msb:$Name", $script:ProjectNamespace)
+	if ($child) {
+		return $child
+	}
+	$child = $Doc.CreateElement($Name, $Doc.DocumentElement.NamespaceURI)
+	[void]$Parent.AppendChild($child)
+	return $child
+}
+
+function Add-ListValue {
+	param(
+		[System.Xml.XmlNode]$Node,
+		[string]$Value,
+		[string]$InheritedMacro = ""
+	)
+	$parts = @($Node.InnerText -split ";" | Where-Object { $_ })
+	if ($parts -contains $Value) {
+		$changed = $false
+	} else {
+		$parts = @($Value) + $parts
+		$changed = $true
+	}
+	if (![string]::IsNullOrWhiteSpace($InheritedMacro) -and $parts -notcontains $InheritedMacro) {
+		$parts += $InheritedMacro
+		$changed = $true
+	}
+	$inherited = @($parts | Where-Object { $_ -like "%(*" })
+	$regular = @($parts | Where-Object { $_ -notlike "%(*" })
+	$Node.InnerText = ($regular + $inherited) -join ";"
+	return $changed
+}
+
+function Add-CompilerDefinition {
+	param(
+		[xml]$Doc,
+		[System.Xml.XmlNamespaceManager]$Namespace,
+		[string]$Definition
+	)
+	$changed = $false
+	$itemGroups = @($Doc.SelectNodes("//msb:ItemDefinitionGroup", $Namespace))
+	foreach ($group in $itemGroups) {
+		$clCompile = Get-OrCreateProjectChild -Doc $Doc -Parent $group -Name "ClCompile"
+		$definitions = Get-OrCreateProjectChild -Doc $Doc -Parent $clCompile -Name "PreprocessorDefinitions"
+		if (Add-ListValue -Node $definitions -Value $Definition -InheritedMacro "%(PreprocessorDefinitions)") {
+			$changed = $true
+		}
+	}
+	return $changed
+}
+
+function Add-LinkerLibraryDirectory {
+	param(
+		[xml]$Doc,
+		[System.Xml.XmlNamespaceManager]$Namespace,
+		[string]$LibraryDirectory
+	)
+	$changed = $false
+	$itemGroups = @($Doc.SelectNodes("//msb:ItemDefinitionGroup", $Namespace))
+	foreach ($group in $itemGroups) {
+		$link = Get-OrCreateProjectChild -Doc $Doc -Parent $group -Name "Link"
+		$directories = Get-OrCreateProjectChild -Doc $Doc -Parent $link -Name "AdditionalLibraryDirectories"
+		if (Add-ListValue -Node $directories -Value $LibraryDirectory -InheritedMacro "%(AdditionalLibraryDirectories)") {
+			$changed = $true
+		}
+	}
+	return $changed
+}
+
+function Add-LinkerDependency {
+	param(
+		[xml]$Doc,
+		[System.Xml.XmlNamespaceManager]$Namespace,
+		[string]$Dependency
+	)
+	$changed = $false
+	$itemGroups = @($Doc.SelectNodes("//msb:ItemDefinitionGroup", $Namespace))
+	foreach ($group in $itemGroups) {
+		$link = Get-OrCreateProjectChild -Doc $Doc -Parent $group -Name "Link"
+		$dependencies = Get-OrCreateProjectChild -Doc $Doc -Parent $link -Name "AdditionalDependencies"
+		if (Add-ListValue -Node $dependencies -Value $Dependency -InheritedMacro "%(AdditionalDependencies)") {
+			$changed = $true
+		}
+	}
+	return $changed
+}
+
+function Assert-WhisperRuntime {
+	param([string]$AudioRoot)
+	$required = @(
+		(Join-Path $AudioRoot "libs\whisper\include\whisper.h"),
+		(Join-Path $AudioRoot "libs\whisper\lib\whisper.lib"),
+		(Join-Path $AudioRoot "libs\whisper\bin\whisper.dll")
+	)
+	foreach ($path in $required) {
+		if (!(Test-Path -LiteralPath $path -PathType Leaf)) {
+			throw "Whisper runtime is incomplete. Missing: $path. Run scripts\build-whisper.bat first, then rebuild with -WithWhisper."
+		}
+	}
+}
+
+function Assert-CoreGgmlRuntime {
+	param([string]$CoreRoot)
+	$required = @(
+		(Join-Path $CoreRoot "libs\ggml\include\ggml.h"),
+		(Join-Path $CoreRoot "libs\ggml\lib\ggml.lib"),
+		(Join-Path $CoreRoot "libs\ggml\lib\ggml-base.lib"),
+		(Join-Path $CoreRoot "libs\ggml\lib\ggml-cpu.lib")
+	)
+	foreach ($path in $required) {
+		if (!(Test-Path -LiteralPath $path -PathType Leaf)) {
+			throw "ofxGgmlCore ggml runtime is incomplete. Missing: $path. Run ..\ofxGgmlCore\scripts\setup-ggml.bat first."
+		}
+	}
+}
+
+function Copy-WhisperRuntimeDll {
+	param(
+		[string]$AudioRoot,
+		[string]$ExampleRoot
+	)
+	$dllSource = Join-Path $AudioRoot "libs\whisper\bin\whisper.dll"
+	$binRoot = Join-Path $ExampleRoot "bin"
+	if (!(Test-Path -LiteralPath $dllSource -PathType Leaf)) {
+		throw "Whisper runtime DLL was not found: $dllSource"
+	}
+	New-Item -ItemType Directory -Force -Path $binRoot | Out-Null
+	Copy-Item -LiteralPath $dllSource -Destination (Join-Path $binRoot "whisper.dll") -Force
+	Write-Step "Copied whisper.dll into the example bin folder"
+}
+
 function Repair-VisualStudioProjectFile {
 	param(
 		[string]$Path,
 		[string]$CoreRoot,
 		[string]$AudioRoot,
-		[string]$ImguiRoot
+		[string]$ImguiRoot,
+		[bool]$WithWhisper
 	)
 	if (!(Test-Path -LiteralPath $Path -PathType Leaf)) {
 		return
@@ -231,6 +369,7 @@ function Repair-VisualStudioProjectFile {
 	[xml]$doc = Get-Content -LiteralPath $Path -Raw
 	$namespace = New-Object System.Xml.XmlNamespaceManager($doc.NameTable)
 	$namespace.AddNamespace("msb", "http://schemas.microsoft.com/developer/msbuild/2003")
+	$script:ProjectNamespace = $namespace
 	$changed = $false
 
 	foreach ($tag in @("ClCompile", "ClInclude", "None", "CustomBuild", "CudaCompile", "Filter")) {
@@ -248,6 +387,7 @@ function Repair-VisualStudioProjectFile {
 	if ($Path.EndsWith(".vcxproj", [System.StringComparison]::OrdinalIgnoreCase)) {
 		foreach ($includeDir in @(
 			"..\..\ofxGgmlCore\src",
+			"..\..\ofxGgmlCore\libs\ggml\include",
 			"..\..\ofxGgmlAudio\src",
 			"..\..\ofxGgmlAudio\libs\whisper\include",
 			"..\..\ofxImGui\src",
@@ -257,6 +397,25 @@ function Repair-VisualStudioProjectFile {
 			"..\..\ofxImGui\libs\imgui\extras"
 		)) {
 			if (Add-IncludeDirectory -Doc $doc -Namespace $namespace -IncludeDir $includeDir) {
+				$changed = $true
+			}
+		}
+		if ($WithWhisper) {
+			if (Add-CompilerDefinition -Doc $doc -Namespace $namespace -Definition "OFXGGMLAUDIO_WITH_WHISPER") {
+				$changed = $true
+			}
+			if (Add-LinkerLibraryDirectory -Doc $doc -Namespace $namespace -LibraryDirectory "..\..\ofxGgmlAudio\libs\whisper\lib") {
+				$changed = $true
+			}
+			if (Add-LinkerDependency -Doc $doc -Namespace $namespace -Dependency "whisper.lib") {
+				$changed = $true
+			}
+		}
+		if (Add-LinkerLibraryDirectory -Doc $doc -Namespace $namespace -LibraryDirectory "..\..\ofxGgmlCore\libs\ggml\lib") {
+			$changed = $true
+		}
+		foreach ($dependency in @("ggml.lib", "ggml-base.lib", "ggml-cpu.lib")) {
+			if (Add-LinkerDependency -Doc $doc -Namespace $namespace -Dependency $dependency) {
 				$changed = $true
 			}
 		}
@@ -305,12 +464,15 @@ if ($DryRun) {
 	Write-Host "  configuration: $Configuration"
 	Write-Host "  platform: $Platform"
 	Write-Host "  clean: $(if ($Clean) { 'ON' } else { 'OFF' })"
+	Write-Host "  with whisper: $(if ($WithWhisper) { 'ON' } else { 'OFF' })"
+	Write-Host "  whisper runtime: $(Join-Path $addonRoot 'libs\whisper')"
 	Write-Host "  projectGenerator: $(Find-ProjectGenerator -OfRoot $ofRoot)"
 	Write-Host "  msbuild: $(Get-MsBuild)"
 	return
 }
 
 if (Test-WindowsHost) {
+	Assert-CoreGgmlRuntime -CoreRoot $coreRoot
 	if (!(Test-Path -LiteralPath $projectPath -PathType Leaf)) {
 		$projectGenerator = Find-ProjectGenerator -OfRoot $ofRoot
 		if ([string]::IsNullOrWhiteSpace($projectGenerator)) {
@@ -321,8 +483,11 @@ if (Test-WindowsHost) {
 			& $projectGenerator "-o$ofRoot" "-aofxGgmlCore,ofxGgmlAudio,ofxImGui" "-pvs" $exampleRoot
 		}
 	}
-	Repair-VisualStudioProjectFile -Path $projectPath -CoreRoot $coreRoot -AudioRoot $addonRoot -ImguiRoot $imguiRoot
-	Repair-VisualStudioProjectFile -Path "$projectPath.filters" -CoreRoot $coreRoot -AudioRoot $addonRoot -ImguiRoot $imguiRoot
+	if ($WithWhisper) {
+		Assert-WhisperRuntime -AudioRoot $addonRoot
+	}
+	Repair-VisualStudioProjectFile -Path $projectPath -CoreRoot $coreRoot -AudioRoot $addonRoot -ImguiRoot $imguiRoot -WithWhisper ([bool]$WithWhisper)
+	Repair-VisualStudioProjectFile -Path "$projectPath.filters" -CoreRoot $coreRoot -AudioRoot $addonRoot -ImguiRoot $imguiRoot -WithWhisper $false
 
 	$msbuild = Get-MsBuild
 	if ([string]::IsNullOrWhiteSpace($msbuild)) {
@@ -332,6 +497,9 @@ if (Test-WindowsHost) {
 	Write-Step "Building $exampleName $Configuration $Platform"
 	Invoke-Checked "MSBuild $exampleName" {
 		& $msbuild $projectPath /t:$target /p:Configuration=$Configuration /p:Platform=$Platform /p:TrackFileAccess=false /m:1 /nr:false
+	}
+	if ($WithWhisper) {
+		Copy-WhisperRuntimeDll -AudioRoot $addonRoot -ExampleRoot $exampleRoot
 	}
 	return
 }

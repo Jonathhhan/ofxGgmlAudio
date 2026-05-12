@@ -57,6 +57,7 @@ if (!$?) {
 Assert-Contains $buildOutput "Transcribe example build plan" "Build dry-run"
 Assert-Contains $buildOutput "configuration: $Configuration" "Build dry-run"
 Assert-Contains $buildOutput "platform: $Platform" "Build dry-run"
+Assert-Contains $buildOutput "with whisper: OFF" "Build dry-run"
 
 Write-Step "Transcribe example launch dry-run"
 $runOutput = & (Join-Path $scriptRoot "run-transcribe-example.ps1") `

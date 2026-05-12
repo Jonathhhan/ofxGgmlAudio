@@ -19,6 +19,9 @@ build/
 libs/*/.source/
 libs/*/build/
 libs/*/build*/
+libs/whisper/include/whisper.h
+libs/whisper/lib/cmake/
+libs/whisper/lib/pkgconfig/
 
 ofxGgml*Example/bin/
 ofxGgml*Example/obj/

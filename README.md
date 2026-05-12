@@ -64,7 +64,9 @@ Pass `-BundledGgml` only for upstream experiments where whisper.cpp should
 build against its own ggml copy.
 
 Compile app projects with `OFXGGMLAUDIO_WITH_WHISPER` after generating the
-runtime. Until then, the backend compiles as a clear unavailable stub.
+runtime. The transcribe build script exposes this as `-WithWhisper` and copies
+`whisper.dll` next to the example executable on Windows. Until then, the
+backend compiles as a clear unavailable stub.
 
 The first native transcription path is intentionally narrow: `transcribe()`
 accepts WAV files with 16-bit PCM or 32-bit float samples, mixes multi-channel
@@ -81,7 +83,7 @@ openFrameworks projectGenerator using addons `ofxGgmlAudio`, `ofxGgmlCore`, and
 
 ```powershell
 scripts\build-whisper.bat
-scripts\run-transcribe-example.bat -Build -Model C:\path\to\ggml-base.en.bin -Audio C:\path\to\speech.wav
+scripts\run-transcribe-example.bat -Build -WithWhisper -Model C:\path\to\ggml-base.en.bin -Audio C:\path\to\speech.wav
 ```
 
 Use `scripts\run-transcribe-example.bat -DryRun` to check the launch plan

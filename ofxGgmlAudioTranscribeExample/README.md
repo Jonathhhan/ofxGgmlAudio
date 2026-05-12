@@ -13,7 +13,11 @@ Build the optional runtime first:
 ```
 
 Then compile the generated project with `OFXGGMLAUDIO_WITH_WHISPER` enabled and
-link the generated whisper runtime listed in `addon_config.mk`.
+link the generated whisper runtime:
+
+```powershell
+..\scripts\run-transcribe-example.bat -Build -WithWhisper -Model C:\path\to\ggml-base.en.bin -Audio C:\path\to\speech.wav
+```
 
 Optional environment defaults:
 

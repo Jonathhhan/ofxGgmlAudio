@@ -6,6 +6,7 @@ param(
 	[switch]$Translate,
 	[switch]$NoTimestamps,
 	[switch]$Build,
+	[switch]$WithWhisper,
 	[switch]$DryRun,
 	[string]$Configuration = "Release",
 	[string]$Platform = "x64"
@@ -54,7 +55,14 @@ $exampleRoot = Join-Path $addonRoot $exampleName
 $exampleExe = Join-Path $exampleRoot "bin\$exampleName.exe"
 
 if ($Build) {
-	& (Join-Path $scriptRoot "build-transcribe-example.ps1") -Configuration $Configuration -Platform $Platform
+	$buildArgs = @(
+		"-Configuration", $Configuration,
+		"-Platform", $Platform
+	)
+	if ($WithWhisper) {
+		$buildArgs += "-WithWhisper"
+	}
+	& (Join-Path $scriptRoot "build-transcribe-example.ps1") @buildArgs
 	if ($LASTEXITCODE -ne 0) {
 		exit $LASTEXITCODE
 	}
