@@ -76,6 +76,21 @@ int main() {
 		return 1;
 	}
 
+	streamRequest.format.sampleRate = 48000;
+	streamRequest.format.channels = 2;
+	streamRequest.samples = { 0.0f, 0.1f, 0.2f };
+	if (ofxGgmlAudioUtils::hasSamples(streamRequest)) {
+		std::cerr << "incomplete interleaved stream request reported as configured\n";
+		return 1;
+	}
+	std::vector<float> invalidMonoSamples;
+	std::string invalidMonoError;
+	if (ofxGgmlAudioUtils::mixToMono(streamRequest, invalidMonoSamples, &invalidMonoError) ||
+		invalidMonoError.find("aligned") == std::string::npos) {
+		std::cerr << "incomplete interleaved stream request was mixed without a clear error\n";
+		return 1;
+	}
+
 	streamRequest.task = ofxGgmlAudioTask::Denoising;
 	streamRequest.format.sampleRate = 48000;
 	streamRequest.format.channels = 2;

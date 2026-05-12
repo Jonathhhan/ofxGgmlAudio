@@ -60,7 +60,9 @@ namespace ofxGgmlAudioUtils {
 	}
 
 	bool hasSamples(const ofxGgmlAudioStreamRequest & request) {
-		return request.format.isValid() && !request.samples.empty();
+		return request.format.isValid() &&
+			!request.samples.empty() &&
+			(request.samples.size() % static_cast<std::size_t>(request.format.channels)) == 0;
 	}
 
 	int getFrameCount(const ofxGgmlAudioStreamRequest & request) {
@@ -115,8 +117,16 @@ namespace ofxGgmlAudioUtils {
 
 	bool mixToMono(const ofxGgmlAudioStreamRequest & request, std::vector<float> & samples, std::string * error) {
 		samples.clear();
-		if (!hasSamples(request)) {
+		if (!request.format.isValid()) {
+			setError(error, "audio stream request has an invalid format");
+			return false;
+		}
+		if (request.samples.empty()) {
 			setError(error, "audio stream request has no samples");
+			return false;
+		}
+		if ((request.samples.size() % static_cast<std::size_t>(request.format.channels)) != 0) {
+			setError(error, "audio stream sample count is not aligned to the channel count");
 			return false;
 		}
 
