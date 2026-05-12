@@ -25,11 +25,12 @@
 
 - Add broader media decoding before claiming general audio-file support.
 - Add one useful openFrameworks example that runs with a user-provided Whisper
-  model and audio file.
+  model and audio file. Done first as `ofxGgmlAudioTranscribeExample`.
 - Add task lanes for denoising, voice conversion, emotion cues, VAD, and audio
   event detection.
 - Add focused tests around request/result helpers.
 - Document the `clone -> setup -> run` path from a new user's point of view.
+  Done first in `docs/QUICKSTART.md`.
 
 ## Stream API Notes
 

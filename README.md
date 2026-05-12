@@ -93,6 +93,8 @@ with editable model/audio paths and `ofLog` output. Generate it with the
 openFrameworks projectGenerator using addons `ofxGgmlAudio`, `ofxGgmlCore`, and
 `ofxImGui`.
 
+For the full fresh-checkout path, see [docs/QUICKSTART.md](docs/QUICKSTART.md).
+
 First run:
 
 ```powershell
