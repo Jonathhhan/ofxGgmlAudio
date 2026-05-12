@@ -39,13 +39,25 @@ function Invoke-Step {
 	}
 }
 
+function Test-WindowsHost {
+	return !($IsLinux -or $IsMacOS)
+}
+
 function Test-WhisperRuntimeReady {
 	param([string]$Root)
-	foreach ($relative in @(
-		"libs\whisper\include\whisper.h",
-		"libs\whisper\lib\whisper.lib",
-		"libs\whisper\bin\whisper.dll"
-	)) {
+	$required = if (Test-WindowsHost) {
+		@(
+			"libs\whisper\include\whisper.h",
+			"libs\whisper\lib\whisper.lib",
+			"libs\whisper\bin\whisper.dll"
+		)
+	} else {
+		@(
+			"libs/whisper/include/whisper.h",
+			"libs/whisper/lib/libwhisper.a"
+		)
+	}
+	foreach ($relative in $required) {
 		if (!(Test-Path -LiteralPath (Join-Path $Root $relative) -PathType Leaf)) {
 			return $false
 		}

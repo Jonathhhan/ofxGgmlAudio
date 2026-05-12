@@ -14,6 +14,29 @@ function Test-CommandAvailable {
 	}
 }
 
+function Test-WindowsHost {
+	return !($IsLinux -or $IsMacOS)
+}
+
+function Get-PlatformScript {
+	param([string]$Name)
+	if (Test-WindowsHost) {
+		return "scripts\$Name.bat"
+	}
+	return "./scripts/$Name.sh"
+}
+
+function Get-PlatformSiblingScript {
+	param(
+		[string]$AddonName,
+		[string]$Name
+	)
+	if (Test-WindowsHost) {
+		return "..\$AddonName\scripts\$Name.bat"
+	}
+	return "../$AddonName/scripts/$Name.sh"
+}
+
 function Test-AnyFile {
 	param(
 		[string[]]$Directories,
@@ -32,6 +55,19 @@ function Test-AnyFile {
 		}
 	}
 	return $false
+}
+
+function Test-AllFiles {
+	param(
+		[string]$Root,
+		[string[]]$RelativePaths
+	)
+	foreach ($relative in $RelativePaths) {
+		if (!(Test-Path -LiteralPath (Join-Path $Root $relative) -PathType Leaf)) {
+			return $false
+		}
+	}
+	return $true
 }
 
 function Add-Check {
@@ -59,7 +95,18 @@ $imguiRoot = Join-Path $addonsRoot "ofxImGui"
 $exampleRoot = Join-Path $addonRoot "ofxGgmlAudioTranscribeExample"
 $modelPath = Join-Path $addonRoot "models\ggml-$ModelName.bin"
 $audioPath = Join-Path $addonRoot "audio\jfk.wav"
-$exampleExe = Join-Path $exampleRoot "bin\ofxGgmlAudioTranscribeExample.exe"
+$exampleExe = if (Test-WindowsHost) {
+	Join-Path $exampleRoot "bin\ofxGgmlAudioTranscribeExample.exe"
+} else {
+	Join-Path $exampleRoot "bin/ofxGgmlAudioTranscribeExample"
+}
+$coreSetupCommand = "$(Get-PlatformSiblingScript -AddonName 'ofxGgmlCore' -Name 'setup-ggml') -Cuda"
+$buildWhisperCommand = Get-PlatformScript -Name "build-whisper"
+$downloadAssetsCommand = Get-PlatformScript -Name "download-whisper-assets"
+$quickstartCommand = Get-PlatformScript -Name "quickstart-transcribe-example"
+$runBuildCommand = "$(Get-PlatformScript -Name 'run-transcribe-example') -Build -WithWhisper"
+$runCommand = Get-PlatformScript -Name "run-transcribe-example"
+$validateCommand = Get-PlatformScript -Name "validate-local"
 
 $checks = [System.Collections.Generic.List[object]]::new()
 
@@ -70,26 +117,31 @@ Add-Check $checks "PowerShell" ((Test-CommandAvailable "pwsh") -or (Test-Command
 Add-Check $checks "git" (Test-CommandAvailable "git") "git on PATH" "Install Git and reopen the terminal."
 Add-Check $checks "cmake" (Test-CommandAvailable "cmake") "cmake on PATH" "Install CMake and reopen the terminal."
 
-$coreGgmlReady = (Test-Path -LiteralPath (Join-Path $coreRoot "libs\ggml\include\ggml.h") -PathType Leaf) -and
-	(Test-Path -LiteralPath (Join-Path $coreRoot "libs\ggml\lib\ggml.lib") -PathType Leaf) -and
-	(Test-Path -LiteralPath (Join-Path $coreRoot "libs\ggml\lib\ggml-base.lib") -PathType Leaf) -and
-	(Test-Path -LiteralPath (Join-Path $coreRoot "libs\ggml\lib\ggml-cpu.lib") -PathType Leaf)
-Add-Check $checks "ofxGgmlCore ggml runtime" $coreGgmlReady (Join-Path $coreRoot "libs\ggml") "..\ofxGgmlCore\scripts\setup-ggml.bat -Cuda"
+$coreRuntimeFiles = if (Test-WindowsHost) {
+	@("libs\ggml\include\ggml.h", "libs\ggml\lib\ggml.lib", "libs\ggml\lib\ggml-base.lib", "libs\ggml\lib\ggml-cpu.lib")
+} else {
+	@("libs/ggml/include/ggml.h", "libs/ggml/lib/libggml.a", "libs/ggml/lib/libggml-base.a", "libs/ggml/lib/libggml-cpu.a")
+}
+$coreGgmlReady = Test-AllFiles -Root $coreRoot -RelativePaths $coreRuntimeFiles
+Add-Check $checks "ofxGgmlCore ggml runtime" $coreGgmlReady (Join-Path $coreRoot "libs\ggml") $coreSetupCommand
 
-$whisperReady = (Test-Path -LiteralPath (Join-Path $addonRoot "libs\whisper\include\whisper.h") -PathType Leaf) -and
-	(Test-Path -LiteralPath (Join-Path $addonRoot "libs\whisper\lib\whisper.lib") -PathType Leaf) -and
-	(Test-Path -LiteralPath (Join-Path $addonRoot "libs\whisper\bin\whisper.dll") -PathType Leaf)
-Add-Check $checks "Whisper runtime" $whisperReady (Join-Path $addonRoot "libs\whisper") "scripts\build-whisper.bat"
+$whisperRuntimeFiles = if (Test-WindowsHost) {
+	@("libs\whisper\include\whisper.h", "libs\whisper\lib\whisper.lib", "libs\whisper\bin\whisper.dll")
+} else {
+	@("libs/whisper/include/whisper.h", "libs/whisper/lib/libwhisper.a")
+}
+$whisperReady = Test-AllFiles -Root $addonRoot -RelativePaths $whisperRuntimeFiles
+Add-Check $checks "Whisper runtime" $whisperReady (Join-Path $addonRoot "libs\whisper") $buildWhisperCommand
 
 $modelReady = (Test-Path -LiteralPath $modelPath -PathType Leaf) -or
 	(Test-AnyFile -Directories @((Join-Path $addonRoot "models"), (Join-Path $addonsRoot "models")) -Extensions @(".bin"))
-Add-Check $checks "Whisper model" $modelReady $modelPath "scripts\download-whisper-assets.bat"
+Add-Check $checks "Whisper model" $modelReady $modelPath $downloadAssetsCommand
 
 $audioReady = (Test-Path -LiteralPath $audioPath -PathType Leaf) -or
 	(Test-AnyFile -Directories @((Join-Path $addonRoot "audio"), (Join-Path $addonsRoot "audio")) -Extensions @(".wav"))
-Add-Check $checks "WAV input" $audioReady $audioPath "scripts\download-whisper-assets.bat"
+Add-Check $checks "WAV input" $audioReady $audioPath $downloadAssetsCommand
 
-Add-Check $checks "Transcribe example executable" (Test-Path -LiteralPath $exampleExe -PathType Leaf) $exampleExe "scripts\run-transcribe-example.bat -Build -WithWhisper"
+Add-Check $checks "Transcribe example executable" (Test-Path -LiteralPath $exampleExe -PathType Leaf) $exampleExe $runBuildCommand
 
 Write-Host "ofxGgmlAudio doctor"
 Write-Host ""
@@ -105,16 +157,16 @@ foreach ($check in $checks) {
 $missing = @($checks | Where-Object { !$_.Ok })
 Write-Host ""
 if ($missing.Count -eq 0) {
-	Write-Host "Ready. Run: scripts\run-transcribe-example.bat"
+	Write-Host "Ready. Run: $runCommand"
 	exit 0
 }
 
 Write-Host "Next likely command:"
 if (!$coreGgmlReady) {
-	Write-Host "  ..\ofxGgmlCore\scripts\setup-ggml.bat -Cuda"
+	Write-Host "  $coreSetupCommand"
 } elseif (!$whisperReady -or !$modelReady -or !$audioReady -or !(Test-Path -LiteralPath $exampleExe -PathType Leaf)) {
-	Write-Host "  scripts\quickstart-transcribe-example.bat"
+	Write-Host "  $quickstartCommand"
 } else {
-	Write-Host "  scripts\validate-local.bat"
+	Write-Host "  $validateCommand"
 }
 exit 1
