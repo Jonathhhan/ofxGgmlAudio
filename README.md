@@ -103,6 +103,14 @@ scripts\quickstart-transcribe-example.bat
 scripts\quickstart-transcribe-example.bat -DryRun
 ```
 
+On macOS/Linux:
+
+```sh
+./scripts/doctor-audio.sh
+./scripts/quickstart-transcribe-example.sh
+./scripts/quickstart-transcribe-example.sh -DryRun
+```
+
 `doctor-audio` prints the current setup state and the next likely command when
 something is missing. The quickstart reuses an installed Whisper runtime when
 present, downloads the default tiny model and sample WAV, builds the
@@ -114,6 +122,14 @@ lower-level scripts directly:
 scripts\build-whisper.bat
 scripts\download-whisper-assets.bat
 scripts\run-transcribe-example.bat -Build -WithWhisper
+```
+
+On macOS/Linux:
+
+```sh
+./scripts/build-whisper.sh
+./scripts/download-whisper-assets.sh
+./scripts/run-transcribe-example.sh -Build -WithWhisper
 ```
 
 ## Dependencies

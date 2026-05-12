@@ -119,6 +119,10 @@ Assert-Path (Join-Path $addonRoot "libs\whisper\bin\.gitkeep") "Whisper bin plac
 Assert-Path (Join-Path $addonRoot "libs\whisper\include\.gitkeep") "Whisper include placeholder"
 Assert-Path (Join-Path $addonRoot "libs\whisper\lib\.gitkeep") "Whisper lib placeholder"
 
+foreach ($shellWrapper in Get-ChildItem -LiteralPath $scriptRoot -Filter "*.sh" -File) {
+	Assert-FileContains $shellWrapper.FullName "ExecutionPolicy Bypass" "shell wrapper $($shellWrapper.Name)"
+}
+
 $nestedExamples = Join-Path $addonRoot "examples"
 if (Test-Path -LiteralPath $nestedExamples -PathType Container) {
 	throw "Examples should live at the addon root, not under: $nestedExamples"
