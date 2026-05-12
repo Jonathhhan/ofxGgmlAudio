@@ -2,6 +2,11 @@
 
 #include "ofxGgmlAudioUtils.h"
 
+#include <algorithm>
+#include <sstream>
+#include <thread>
+#include <vector>
+
 #if defined(OFXGGMLAUDIO_WITH_WHISPER) && __has_include(<whisper.h>)
 	#include <whisper.h>
 	#define OFXGGMLAUDIO_HAS_WHISPER 1
@@ -22,6 +27,44 @@ namespace {
 		result.success = true;
 		result.text = message;
 		return result;
+	}
+
+	bool getMono16kSamples(const ofxGgmlAudioStreamRequest& request, std::vector<float>& samples, std::string& error) {
+		if (!ofxGgmlAudioUtils::hasSamples(request)) {
+			error = "no PCM samples were configured";
+			return false;
+		}
+		if (request.task != ofxGgmlAudioTask::Transcription) {
+			error = "whisper.cpp only handles transcription requests";
+			return false;
+		}
+		if (request.format.sampleRate != 16000) {
+			error = "whisper.cpp requires 16000 Hz audio; resampling is not wired yet";
+			return false;
+		}
+		const auto frameCount = ofxGgmlAudioUtils::getFrameCount(request);
+		if (frameCount <= 0) {
+			error = "audio request did not contain a full frame";
+			return false;
+		}
+
+		samples.resize(static_cast<std::size_t>(frameCount));
+		if (request.format.channels == 1) {
+			for (int i = 0; i < frameCount; ++i) {
+				samples[static_cast<std::size_t>(i)] = request.samples[static_cast<std::size_t>(i)];
+			}
+			return true;
+		}
+
+		for (int frame = 0; frame < frameCount; ++frame) {
+			float mixed = 0.0f;
+			for (int channel = 0; channel < request.format.channels; ++channel) {
+				const auto index = static_cast<std::size_t>(frame * request.format.channels + channel);
+				mixed += request.samples[index];
+			}
+			samples[static_cast<std::size_t>(frame)] = mixed / static_cast<float>(request.format.channels);
+		}
+		return true;
 	}
 }
 
@@ -113,8 +156,70 @@ ofxGgmlAudioResult ofxGgmlAudioWhisperBackend::transcribe(const ofxGgmlAudioRequ
 		return makeError("whisper.cpp context is not loaded");
 	}
 
+	ofxGgmlAudioFrame frame;
+	std::string loadError;
+	if (!ofxGgmlAudioUtils::loadWavFile(request.audioPath, frame, nullptr, &loadError)) {
+		return makeError(loadError);
+	}
+
+	auto streamRequest = ofxGgmlAudioUtils::toStreamRequest(frame, ofxGgmlAudioTask::Transcription);
+	if (!request.language.empty()) {
+		streamRequest.hints.push_back("language:" + request.language);
+	}
+	return transcribe(streamRequest);
+}
+
+ofxGgmlAudioResult ofxGgmlAudioWhisperBackend::transcribe(const ofxGgmlAudioStreamRequest& request) {
+	std::vector<float> samples;
+	std::string pcmError;
+	if (!getMono16kSamples(request, samples, pcmError)) {
+		return makeError(pcmError);
+	}
+	if (!impl || !impl->isLoaded()) {
+		return makeError("whisper.cpp context is not loaded");
+	}
+
 #if OFXGGMLAUDIO_HAS_WHISPER
-	return makeError("whisper.cpp audio decoding is not wired yet; this backend boundary only owns runtime setup for now");
+	auto params = whisper_full_default_params(WHISPER_SAMPLING_GREEDY);
+	const auto hardwareThreads = static_cast<int>(std::thread::hardware_concurrency());
+	params.n_threads = impl->settings.threads > 0 ? impl->settings.threads : std::max(1, hardwareThreads);
+	params.translate = impl->settings.translate;
+	params.no_timestamps = !impl->settings.timestamps;
+	params.print_progress = false;
+	params.print_realtime = false;
+	params.print_timestamps = false;
+	params.print_special = false;
+
+	std::string language = impl->settings.language;
+	for (const auto& hint : request.hints) {
+		const std::string prefix = "language:";
+		if (hint.rfind(prefix, 0) == 0) {
+			language = hint.substr(prefix.size());
+		}
+	}
+	if (!language.empty()) {
+		params.language = language.c_str();
+	}
+
+	if (whisper_full(impl->context, params, samples.data(), static_cast<int>(samples.size())) != 0) {
+		return makeError("whisper.cpp transcription failed");
+	}
+
+	ofxGgmlAudioResult result;
+	result.success = true;
+	const int segmentCount = whisper_full_n_segments(impl->context);
+	std::ostringstream text;
+	for (int i = 0; i < segmentCount; ++i) {
+		if (i > 0) {
+			text << '\n';
+		}
+		const char* segmentText = whisper_full_get_segment_text(impl->context, i);
+		if (segmentText) {
+			text << segmentText;
+		}
+	}
+	result.text = text.str();
+	return result;
 #else
 	(void)request;
 	return makeError("whisper.cpp backend is not enabled. Run scripts/build-whisper.*, then compile with OFXGGMLAUDIO_WITH_WHISPER.");

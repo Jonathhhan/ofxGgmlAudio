@@ -35,6 +35,13 @@ struct ofxGgmlAudioFrame {
 	}
 };
 
+struct ofxGgmlAudioWavInfo {
+	ofxGgmlAudioStreamFormat format;
+	int bitsPerSample = 0;
+	int formatCode = 0;
+	std::size_t frameCount = 0;
+};
+
 struct ofxGgmlAudioRequest {
 	std::string audioPath;
 	std::string language;

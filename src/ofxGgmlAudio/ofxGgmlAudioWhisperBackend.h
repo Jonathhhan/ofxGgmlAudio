@@ -10,6 +10,7 @@ struct ofxGgmlAudioWhisperSettings {
 	int threads = 0;
 	bool translate = false;
 	bool timestamps = true;
+	std::string language;
 
 	bool hasModelPath() const {
 		return !modelPath.empty();
@@ -34,6 +35,7 @@ public:
 
 	ofxGgmlAudioResult setup(const ofxGgmlAudioWhisperSettings& settings);
 	ofxGgmlAudioResult transcribe(const ofxGgmlAudioRequest& request);
+	ofxGgmlAudioResult transcribe(const ofxGgmlAudioStreamRequest& request);
 	void close();
 
 private:

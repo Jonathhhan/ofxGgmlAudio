@@ -1,7 +1,56 @@
 #include "ofxGgmlAudio.h"
 
+#include <cstdint>
 #include <cmath>
+#include <cstdio>
+#include <fstream>
 #include <iostream>
+
+namespace {
+	void writeU16(std::ofstream& output, std::uint16_t value) {
+		output.put(static_cast<char>(value & 0xff));
+		output.put(static_cast<char>((value >> 8) & 0xff));
+	}
+
+	void writeU32(std::ofstream& output, std::uint32_t value) {
+		output.put(static_cast<char>(value & 0xff));
+		output.put(static_cast<char>((value >> 8) & 0xff));
+		output.put(static_cast<char>((value >> 16) & 0xff));
+		output.put(static_cast<char>((value >> 24) & 0xff));
+	}
+
+	bool writeTestWav(const std::string& path) {
+		std::ofstream output(path, std::ios::binary);
+		if (!output) {
+			return false;
+		}
+		constexpr std::uint16_t channels = 1;
+		constexpr std::uint32_t sampleRate = 16000;
+		constexpr std::uint16_t bitsPerSample = 16;
+		const std::int16_t samples[] = { -32768, 0, 32767, 16384 };
+		constexpr std::uint32_t dataSize = sizeof(samples);
+		constexpr std::uint32_t fmtSize = 16;
+		constexpr std::uint32_t riffSize = 4 + (8 + fmtSize) + (8 + dataSize);
+
+		output.write("RIFF", 4);
+		writeU32(output, riffSize);
+		output.write("WAVE", 4);
+		output.write("fmt ", 4);
+		writeU32(output, fmtSize);
+		writeU16(output, 1);
+		writeU16(output, channels);
+		writeU32(output, sampleRate);
+		writeU32(output, sampleRate * channels * bitsPerSample / 8);
+		writeU16(output, channels * bitsPerSample / 8);
+		writeU16(output, bitsPerSample);
+		output.write("data", 4);
+		writeU32(output, dataSize);
+		for (const auto sample : samples) {
+			writeU16(output, static_cast<std::uint16_t>(sample));
+		}
+		return static_cast<bool>(output);
+	}
+}
 
 int main() {
 	ofxGgmlAudioRequest request;
@@ -168,6 +217,40 @@ int main() {
 		return 1;
 	}
 
+	const std::string wavPath = "ofxGgmlAudio_test_16k.wav";
+	if (!writeTestWav(wavPath)) {
+		std::cerr << "could not write test WAV\n";
+		return 1;
+	}
+	ofxGgmlAudioFrame wavFrame;
+	ofxGgmlAudioWavInfo wavInfo;
+	std::string wavError;
+	if (!ofxGgmlAudioUtils::loadWavFile(wavPath, wavFrame, &wavInfo, &wavError)) {
+		std::cerr << "could not load test WAV: " << wavError << "\n";
+		std::remove(wavPath.c_str());
+		return 1;
+	}
+	std::remove(wavPath.c_str());
+	if (wavFrame.format.sampleRate != 16000 ||
+		wavFrame.format.channels != 1 ||
+		wavFrame.samples.size() != 4 ||
+		wavInfo.bitsPerSample != 16 ||
+		wavInfo.frameCount != 4) {
+		std::cerr << "unexpected WAV metadata\n";
+		return 1;
+	}
+	if (std::abs(wavFrame.samples.front() + 1.0f) > 0.0001f ||
+		wavFrame.samples.back() < 0.49f) {
+		std::cerr << "unexpected WAV sample conversion\n";
+		return 1;
+	}
+	const auto wavStream = ofxGgmlAudioUtils::toStreamRequest(wavFrame);
+	if (!ofxGgmlAudioUtils::hasSamples(wavStream) ||
+		ofxGgmlAudioUtils::getFrameCount(wavStream) != 4) {
+		std::cerr << "WAV stream conversion failed\n";
+		return 1;
+	}
+
 	ofxGgmlAudioWhisperBackend backend;
 	if (backend.getBackendName() != "whisper.cpp") {
 		std::cerr << "unexpected whisper backend name\n";
@@ -186,6 +269,11 @@ int main() {
 	const auto transcribeResult = backend.transcribe(request);
 	if (transcribeResult) {
 		std::cerr << "whisper backend transcribed without setup\n";
+		return 1;
+	}
+	const auto streamTranscribeResult = backend.transcribe(wavStream);
+	if (streamTranscribeResult) {
+		std::cerr << "whisper backend transcribed stream without setup\n";
 		return 1;
 	}
 

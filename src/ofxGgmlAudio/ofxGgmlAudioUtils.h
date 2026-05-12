@@ -12,4 +12,6 @@ namespace ofxGgmlAudioUtils {
 	std::string getTaskName(ofxGgmlAudioTask task);
 	std::string describe(const ofxGgmlAudioRequest & request);
 	std::string describe(const ofxGgmlAudioStreamRequest & request);
+	bool loadWavFile(const std::string & path, ofxGgmlAudioFrame & frame, ofxGgmlAudioWavInfo * info = nullptr, std::string * error = nullptr);
+	ofxGgmlAudioStreamRequest toStreamRequest(const ofxGgmlAudioFrame & frame, ofxGgmlAudioTask task = ofxGgmlAudioTask::Transcription);
 }
