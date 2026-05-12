@@ -5,6 +5,8 @@
 - Added an optional headless Whisper transcription smoke test for verifying the
   generated runtime, model, sample WAV, and native backend without launching the
   openFrameworks example.
+- Added timestamped transcript segments, SRT/WebVTT export helpers, and subtitle
+  output from the transcription example when Whisper returns segment timestamps.
 
 ## 1.0.1 - 2026-05-12
 

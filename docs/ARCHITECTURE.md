@@ -17,6 +17,7 @@ No dependency should point from `ofxGgmlCore` back to this addon.
 ## Owned Here
 
 - audio-specific request/result helpers
+- timestamped transcript segments and subtitle export helpers
 - model-specific preprocessing and postprocessing
 - whisper.cpp runtime setup and backend integration
 - real-time stream inference helpers

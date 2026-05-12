@@ -20,10 +20,12 @@
   requests.
 - Add dependency-free mono mixing and linear resampling to prepare PCM for
   Whisper's 16 kHz input rate.
+- Add timestamped transcript segments plus SRT/WebVTT export helpers.
 - Add independent addon version metadata and release-candidate docs.
 
 ## Next Milestones
 
+- Extend the stream chunker into a documented rolling transcription workflow.
 - Add broader media decoding before claiming general audio-file support.
 - Add one useful openFrameworks example that runs with a user-provided Whisper
   model and audio file. Done first as `ofxGgmlAudioTranscribeExample`.

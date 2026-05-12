@@ -37,7 +37,7 @@ int main(int argc, char** argv) {
 	ofxGgmlAudioWhisperSettings settings;
 	settings.modelPath = modelPath;
 	settings.language = "en";
-	settings.timestamps = false;
+	settings.timestamps = true;
 	settings.threads = 0;
 
 	const auto setupResult = backend.setup(settings);
@@ -57,6 +57,18 @@ int main(int argc, char** argv) {
 	}
 	if (result.text.empty()) {
 		std::cerr << "transcription succeeded but returned empty text\n";
+		return 1;
+	}
+	if (result.segments.empty()) {
+		std::cerr << "transcription succeeded but returned no timestamped segments\n";
+		return 1;
+	}
+	const auto srt = ofxGgmlAudioUtils::buildSrt(result.segments);
+	const auto webVtt = ofxGgmlAudioUtils::buildWebVtt(result.segments);
+	if (srt.find("-->") == std::string::npos ||
+		webVtt.find("WEBVTT") != 0 ||
+		webVtt.find("-->") == std::string::npos) {
+		std::cerr << "transcription segments could not be exported as subtitles\n";
 		return 1;
 	}
 

@@ -6,6 +6,7 @@
 #include <cstring>
 #include <fstream>
 #include <limits>
+#include <sstream>
 
 namespace {
 	constexpr int WavFormatPcm = 1;
@@ -55,6 +56,33 @@ namespace {
 		}
 		input.seekg(1, std::ios::cur);
 		return static_cast<bool>(input);
+	}
+
+	std::string trimText(const std::string & value) {
+		const auto first = value.find_first_not_of(" \t\r\n");
+		if (first == std::string::npos) {
+			return "";
+		}
+		const auto last = value.find_last_not_of(" \t\r\n");
+		return value.substr(first, last - first + 1);
+	}
+
+	bool writeTextFile(const std::string & path, const std::string & text, std::string * error) {
+		if (!hasText(path)) {
+			setError(error, "subtitle output path is empty");
+			return false;
+		}
+		std::ofstream output(path, std::ios::binary);
+		if (!output) {
+			setError(error, "could not open subtitle output file: " + path);
+			return false;
+		}
+		output << text;
+		if (!output) {
+			setError(error, "could not write subtitle output file: " + path);
+			return false;
+		}
+		return true;
 	}
 }
 
@@ -325,5 +353,75 @@ namespace ofxGgmlAudioUtils {
 		request.samples = frame.samples;
 		request.timestampSeconds = frame.timestampSeconds;
 		return request;
+	}
+
+	std::string formatSubtitleTimestamp(double seconds, bool commaMilliseconds) {
+		if (seconds < 0.0 || !std::isfinite(seconds)) {
+			seconds = 0.0;
+		}
+		const auto totalMilliseconds = static_cast<long long>(std::llround(seconds * 1000.0));
+		const auto milliseconds = totalMilliseconds % 1000;
+		const auto totalSeconds = totalMilliseconds / 1000;
+		const auto displaySeconds = totalSeconds % 60;
+		const auto totalMinutes = totalSeconds / 60;
+		const auto minutes = totalMinutes % 60;
+		const auto hours = totalMinutes / 60;
+
+		std::ostringstream output;
+		output.fill('0');
+		output.width(2);
+		output << hours << ":";
+		output.width(2);
+		output << minutes << ":";
+		output.width(2);
+		output << displaySeconds << (commaMilliseconds ? "," : ".");
+		output.width(3);
+		output << milliseconds;
+		return output.str();
+	}
+
+	std::string buildSrt(const std::vector<ofxGgmlAudioTranscriptSegment> & segments) {
+		std::ostringstream output;
+		int index = 1;
+		for (const auto & segment : segments) {
+			const auto text = trimText(segment.text);
+			if (text.empty()) {
+				continue;
+			}
+			const auto endSeconds = std::max(segment.endSeconds, segment.startSeconds);
+			output << index++ << "\n";
+			output << formatSubtitleTimestamp(segment.startSeconds, true)
+				<< " --> "
+				<< formatSubtitleTimestamp(endSeconds, true)
+				<< "\n";
+			output << text << "\n\n";
+		}
+		return output.str();
+	}
+
+	std::string buildWebVtt(const std::vector<ofxGgmlAudioTranscriptSegment> & segments) {
+		std::ostringstream output;
+		output << "WEBVTT\n\n";
+		for (const auto & segment : segments) {
+			const auto text = trimText(segment.text);
+			if (text.empty()) {
+				continue;
+			}
+			const auto endSeconds = std::max(segment.endSeconds, segment.startSeconds);
+			output << formatSubtitleTimestamp(segment.startSeconds)
+				<< " --> "
+				<< formatSubtitleTimestamp(endSeconds)
+				<< "\n";
+			output << text << "\n\n";
+		}
+		return output.str();
+	}
+
+	bool writeSrtFile(const std::string & path, const std::vector<ofxGgmlAudioTranscriptSegment> & segments, std::string * error) {
+		return writeTextFile(path, buildSrt(segments), error);
+	}
+
+	bool writeWebVttFile(const std::string & path, const std::vector<ofxGgmlAudioTranscriptSegment> & segments, std::string * error) {
+		return writeTextFile(path, buildWebVtt(segments), error);
 	}
 }

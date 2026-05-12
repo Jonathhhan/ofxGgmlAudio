@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <fstream>
 #include <iostream>
+#include <iterator>
 
 namespace {
 	void writeU16(std::ofstream& output, std::uint16_t value) {
@@ -81,6 +82,47 @@ int main() {
 	const auto description = ofxGgmlAudioUtils::describe(request);
 	if (description.find(request.audioPath) == std::string::npos) {
 		std::cerr << "description did not include request input\n";
+		return 1;
+	}
+
+	ofxGgmlAudioResult transcriptionResult;
+	transcriptionResult.success = true;
+	transcriptionResult.text = "hello\nworld";
+	transcriptionResult.segments.push_back({ 1.25, 2.5, " hello ", 0.8f });
+	transcriptionResult.segments.push_back({ 2.5, 4.0, "world", 0.9f });
+	if (ofxGgmlAudioUtils::formatSubtitleTimestamp(3661.234, true) != "01:01:01,234" ||
+		ofxGgmlAudioUtils::formatSubtitleTimestamp(1.25) != "00:00:01.250") {
+		std::cerr << "subtitle timestamp formatting failed\n";
+		return 1;
+	}
+	const auto srt = ofxGgmlAudioUtils::buildSrt(transcriptionResult.segments);
+	if (srt.find("1\n00:00:01,250 --> 00:00:02,500\nhello") == std::string::npos ||
+		srt.find("2\n00:00:02,500 --> 00:00:04,000\nworld") == std::string::npos) {
+		std::cerr << "SRT subtitle export failed\n";
+		return 1;
+	}
+	const auto webVtt = ofxGgmlAudioUtils::buildWebVtt(transcriptionResult.segments);
+	if (webVtt.find("WEBVTT") != 0 ||
+		webVtt.find("00:00:01.250 --> 00:00:02.500\nhello") == std::string::npos) {
+		std::cerr << "WebVTT subtitle export failed\n";
+		return 1;
+	}
+	const std::string srtPath = "ofxGgmlAudio_test_subtitles.srt";
+	const std::string vttPath = "ofxGgmlAudio_test_subtitles.vtt";
+	std::string subtitleError;
+	if (!ofxGgmlAudioUtils::writeSrtFile(srtPath, transcriptionResult.segments, &subtitleError) ||
+		!ofxGgmlAudioUtils::writeWebVttFile(vttPath, transcriptionResult.segments, &subtitleError)) {
+		std::cerr << "subtitle file export failed: " << subtitleError << "\n";
+		std::remove(srtPath.c_str());
+		std::remove(vttPath.c_str());
+		return 1;
+	}
+	std::ifstream srtInput(srtPath, std::ios::binary);
+	std::string srtFileText((std::istreambuf_iterator<char>(srtInput)), std::istreambuf_iterator<char>());
+	std::remove(srtPath.c_str());
+	std::remove(vttPath.c_str());
+	if (srtFileText.find("hello") == std::string::npos) {
+		std::cerr << "subtitle file content was unexpected\n";
 		return 1;
 	}
 

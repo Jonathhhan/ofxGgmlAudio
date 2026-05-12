@@ -75,7 +75,9 @@ Studio C++ toolchain.
 
 This builds the optional Whisper runtime if needed, downloads the default
 `tiny.en` model and `jfk.wav` sample, builds the example with
-`OFXGGMLAUDIO_WITH_WHISPER`, and launches it.
+`OFXGGMLAUDIO_WITH_WHISPER`, and launches it. A successful run prints the
+transcript in the GUI and writes `.srt` plus `.vtt` subtitle files next to the
+input WAV when timestamped segments are available.
 
 Windows:
 
@@ -153,7 +155,8 @@ export OFXGGML_AUDIO_FILE=/audio/speech.wav
 
 Use the headless Whisper smoke test when you want to verify the native backend
 without launching a GUI. It expects the generated Whisper runtime, the default
-tiny model, and the sample WAV:
+tiny model, and the sample WAV. It also checks that Whisper returns timestamped
+segments that can be exported as SRT and WebVTT:
 
 Windows:
 

@@ -16,4 +16,9 @@ namespace ofxGgmlAudioUtils {
 	bool resampleMono(const std::vector<float> & input, int sourceSampleRate, int targetSampleRate, std::vector<float> & output, std::string * error = nullptr);
 	bool loadWavFile(const std::string & path, ofxGgmlAudioFrame & frame, ofxGgmlAudioWavInfo * info = nullptr, std::string * error = nullptr);
 	ofxGgmlAudioStreamRequest toStreamRequest(const ofxGgmlAudioFrame & frame, ofxGgmlAudioTask task = ofxGgmlAudioTask::Transcription);
+	std::string formatSubtitleTimestamp(double seconds, bool commaMilliseconds = false);
+	std::string buildSrt(const std::vector<ofxGgmlAudioTranscriptSegment> & segments);
+	std::string buildWebVtt(const std::vector<ofxGgmlAudioTranscriptSegment> & segments);
+	bool writeSrtFile(const std::string & path, const std::vector<ofxGgmlAudioTranscriptSegment> & segments, std::string * error = nullptr);
+	bool writeWebVttFile(const std::string & path, const std::vector<ofxGgmlAudioTranscriptSegment> & segments, std::string * error = nullptr);
 }

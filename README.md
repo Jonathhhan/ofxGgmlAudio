@@ -101,14 +101,19 @@ The first native transcription path is intentionally narrow: `transcribe()`
 accepts WAV files with 16-bit PCM or 32-bit float samples, mixes multi-channel
 input to mono, linearly resamples to Whisper's 16 kHz input rate, and passes
 float PCM to whisper.cpp. Other file types fail with explicit errors until
-broader decoding is added.
+broader decoding is added. Successful transcriptions now return
+`ofxGgmlAudioTranscriptSegment` entries with start/end timestamps when the
+backend provides them. `ofxGgmlAudioUtils::buildSrt()`,
+`buildWebVtt()`, `writeSrtFile()`, and `writeWebVttFile()` convert those
+segments into subtitle files.
 
 ## Example
 
 `ofxGgmlAudioTranscribeExample` is a root-level Whisper transcription example
-with editable model/audio paths and `ofLog` output. Generate it with the
-openFrameworks projectGenerator using addons `ofxGgmlAudio`, `ofxGgmlCore`, and
-`ofxImGui`.
+with editable model/audio paths and `ofLog` output. When timestamped segments
+are available, it writes `.srt` and `.vtt` subtitles next to the input WAV.
+Generate it with the openFrameworks projectGenerator using addons
+`ofxGgmlAudio`, `ofxGgmlCore`, and `ofxImGui`.
 
 For the full fresh-checkout path, see [docs/QUICKSTART.md](docs/QUICKSTART.md).
 

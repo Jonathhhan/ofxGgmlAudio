@@ -48,6 +48,13 @@ struct ofxGgmlAudioRequest {
 	std::vector<std::string> tags;
 };
 
+struct ofxGgmlAudioTranscriptSegment {
+	double startSeconds = 0.0;
+	double endSeconds = 0.0;
+	std::string text;
+	float confidence = 0.0f;
+};
+
 struct ofxGgmlAudioStreamRequest {
 	ofxGgmlAudioTask task = ofxGgmlAudioTask::Transcription;
 	ofxGgmlAudioStreamFormat format;
@@ -62,6 +69,7 @@ struct ofxGgmlAudioResult {
 	bool success = false;
 	std::string text;
 	std::string error;
+	std::vector<ofxGgmlAudioTranscriptSegment> segments;
 	std::vector<std::string> references;
 
 	explicit operator bool() const {
@@ -77,6 +85,7 @@ struct ofxGgmlAudioStreamResult {
 	std::string label;
 	std::string text;
 	std::string error;
+	std::vector<ofxGgmlAudioTranscriptSegment> segments;
 	std::vector<float> samples;
 	std::vector<float> scores;
 

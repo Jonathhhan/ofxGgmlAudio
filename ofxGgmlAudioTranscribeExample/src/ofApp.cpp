@@ -214,12 +214,41 @@ void ofApp::runWorker() {
 	}
 
 	ofLogNotice("ofxGgmlAudioTranscribeExample") << transcribeResult.text;
+	std::string nextDetail = "Transcription complete";
+	if (!transcribeResult.segments.empty()) {
+		const std::filesystem::path audioPath(request.audioPath);
+		const auto outputRoot = audioPath.has_parent_path()
+			? audioPath.parent_path()
+			: std::filesystem::current_path();
+		const auto srtPath = outputRoot / (audioPath.stem().string() + ".srt");
+		const auto vttPath = outputRoot / (audioPath.stem().string() + ".vtt");
+		std::string subtitleError;
+		const bool wroteSrt = ofxGgmlAudioUtils::writeSrtFile(
+			srtPath.string(),
+			transcribeResult.segments,
+			&subtitleError);
+		const bool wroteVtt = ofxGgmlAudioUtils::writeWebVttFile(
+			vttPath.string(),
+			transcribeResult.segments,
+			&subtitleError);
+		if (wroteSrt && wroteVtt) {
+			ofLogNotice("ofxGgmlAudioTranscribeExample")
+				<< "wrote subtitles: " << srtPath.string() << " and " << vttPath.string();
+			nextDetail = "Transcription complete; subtitles written next to the audio file";
+		} else {
+			ofLogWarning("ofxGgmlAudioTranscribeExample") << subtitleError;
+			nextDetail = "Transcription complete; subtitle export failed: " + subtitleError;
+		}
+	}
 	{
 		std::lock_guard<std::mutex> lock(stateMutex);
 		result = transcribeResult;
 		output = transcribeResult.text;
+		if (!transcribeResult.segments.empty()) {
+			output += "\n\nsegments: " + ofToString(transcribeResult.segments.size());
+		}
 		status = "complete";
-		detail = "Transcription complete";
+		detail = nextDetail;
 	}
 	running.store(false);
 }

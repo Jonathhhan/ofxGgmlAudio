@@ -191,6 +191,11 @@ ofxGgmlAudioResult ofxGgmlAudioWhisperBackend::transcribe(const ofxGgmlAudioStre
 		const char* segmentText = whisper_full_get_segment_text(impl->context, i);
 		if (segmentText) {
 			text << segmentText;
+			const double segmentStart =
+				request.timestampSeconds + (static_cast<double>(whisper_full_get_segment_t0(impl->context, i)) * 0.01);
+			const double segmentEnd =
+				request.timestampSeconds + (static_cast<double>(whisper_full_get_segment_t1(impl->context, i)) * 0.01);
+			result.segments.push_back({ segmentStart, segmentEnd, segmentText, 0.0f });
 		}
 	}
 	result.text = text.str();
