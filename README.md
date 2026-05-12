@@ -124,6 +124,9 @@ segments into subtitle files.
 `ofxGgmlAudioTranscribeExample` is a root-level Whisper transcription example
 with editable model/audio paths and `ofLog` output. When timestamped segments
 are available, it writes `.srt` and `.vtt` subtitles next to the input WAV.
+Enable `Chunked rolling transcript` in the GUI to process the WAV through
+overlapping stream windows and update the transcript after each chunk. Cancelling
+stops after the current chunk and keeps any accumulated rolling transcript.
 Generate it with the openFrameworks projectGenerator using addons
 `ofxGgmlAudio`, `ofxGgmlCore`, and `ofxImGui`.
 

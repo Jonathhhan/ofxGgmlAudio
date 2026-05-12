@@ -9,6 +9,7 @@
 #include <mutex>
 #include <string>
 #include <thread>
+#include <vector>
 
 class ofApp : public ofBaseApp {
 public:
@@ -20,6 +21,8 @@ public:
 private:
 	void startTranscription();
 	void runWorker();
+	ofxGgmlAudioResult runFileTranscription();
+	ofxGgmlAudioResult runChunkedTranscription();
 	void setStatus(const std::string & nextStatus, const std::string & nextDetail);
 	static std::string findFirstFile(const std::vector<std::string> & directories, const std::vector<std::string> & extensions);
 	static void copyToBuffer(std::array<char, 1024> & buffer, const std::string & value);
@@ -38,8 +41,13 @@ private:
 	std::string status;
 	std::string detail;
 	std::string output;
+	std::string rollingSummary;
 	int threads = 0;
+	float chunkWindowSeconds = 6.0f;
+	float chunkHopSeconds = 4.0f;
 	bool translate = false;
 	bool timestamps = true;
+	bool chunkedMode = false;
 	std::atomic_bool running { false };
+	std::atomic_bool cancelRequested { false };
 };

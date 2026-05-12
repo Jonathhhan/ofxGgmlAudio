@@ -11,6 +11,8 @@
   timestamped transcription chunks into text, SRT, and WebVTT output.
 - Added a chunked Whisper smoke test for validating stream chunking, native
   transcription, rolling transcript deduplication, and subtitle export together.
+- Added chunked rolling transcript mode to the transcribe example, including
+  live chunk progress and between-chunk cancellation.
 
 ## 1.0.1 - 2026-05-12
 

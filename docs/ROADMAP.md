@@ -25,12 +25,14 @@
   chunks.
 - Add a scripted chunked Whisper smoke test that validates chunker, backend,
   rolling transcript, and subtitle export together.
+- Connect rolling transcripts to the transcribe example GUI with chunked mode
+  and between-chunk cancellation.
 - Add independent addon version metadata and release-candidate docs.
 
 ## Next Milestones
 
-- Connect the rolling transcript accumulator to the transcribe example GUI or a
-  dedicated live/streaming example.
+- Add a dedicated live microphone streaming example once the file-based chunked
+  workflow is stable.
 - Add broader media decoding before claiming general audio-file support.
 - Add one useful openFrameworks example that runs with a user-provided Whisper
   model and audio file. Done first as `ofxGgmlAudioTranscribeExample`.
