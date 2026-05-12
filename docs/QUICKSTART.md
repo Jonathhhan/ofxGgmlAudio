@@ -165,6 +165,17 @@ macOS/Linux:
 ./scripts/validate-local.sh
 ```
 
+To remove generated Visual Studio, Xcode, make, `bin`, and `obj` files from
+the transcribe example after local builds:
+
+```powershell
+scripts\clean-transcribe-example.bat
+```
+
+```sh
+./scripts/clean-transcribe-example.sh
+```
+
 ## Troubleshooting
 
 - If runtime files are locked on Windows, close running examples and any

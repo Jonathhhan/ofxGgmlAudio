@@ -97,6 +97,9 @@ Assert-Path (Join-Path $scriptRoot "test-whisper-assets-dry-run.sh") "Whisper as
 Assert-Path (Join-Path $scriptRoot "build-transcribe-example.ps1") "transcribe example build script"
 Assert-Path (Join-Path $scriptRoot "build-transcribe-example.bat") "transcribe example Windows build wrapper"
 Assert-Path (Join-Path $scriptRoot "build-transcribe-example.sh") "transcribe example shell build wrapper"
+Assert-Path (Join-Path $scriptRoot "clean-transcribe-example.ps1") "transcribe example clean script"
+Assert-Path (Join-Path $scriptRoot "clean-transcribe-example.bat") "transcribe example clean Windows wrapper"
+Assert-Path (Join-Path $scriptRoot "clean-transcribe-example.sh") "transcribe example clean shell wrapper"
 Assert-Path (Join-Path $scriptRoot "run-transcribe-example.ps1") "transcribe example run script"
 Assert-Path (Join-Path $scriptRoot "run-transcribe-example.bat") "transcribe example Windows run wrapper"
 Assert-Path (Join-Path $scriptRoot "run-transcribe-example.sh") "transcribe example shell run wrapper"
@@ -150,6 +153,9 @@ Write-Step "Checking Whisper asset download dry-runs"
 
 Write-Step "Checking transcribe example launch dry-runs"
 & (Join-Path $scriptRoot "test-launch-dry-run.ps1")
+
+Write-Step "Checking transcribe example clean dry-run"
+& (Join-Path $scriptRoot "clean-transcribe-example.ps1") -DryRun
 
 Write-Step "Checking transcribe quickstart dry-runs"
 & (Join-Path $scriptRoot "test-transcribe-quickstart-dry-run.ps1")
