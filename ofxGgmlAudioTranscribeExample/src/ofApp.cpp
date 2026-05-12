@@ -33,13 +33,24 @@ void ofApp::setup() {
 
 	const auto modelFromEnv = envValue("OFXGGML_AUDIO_MODEL");
 	const auto audioFromEnv = envValue("OFXGGML_AUDIO_FILE");
+	const auto languageFromEnv = envValue("OFXGGML_AUDIO_LANGUAGE");
+	const auto threadsFromEnv = envValue("OFXGGML_AUDIO_THREADS");
+	const auto translateFromEnv = envValue("OFXGGML_AUDIO_TRANSLATE");
+	const auto timestampsFromEnv = envValue("OFXGGML_AUDIO_TIMESTAMPS");
 	copyToBuffer(modelPathBuffer, !modelFromEnv.empty() ? modelFromEnv : findFirstFile(
 		{ "models", "../models", "../../models", "bin/data/models", "bin/data" },
 		{ ".bin", ".gguf" }));
 	copyToBuffer(audioPathBuffer, !audioFromEnv.empty() ? audioFromEnv : findFirstFile(
 		{ "audio", "data", "bin/data", "bin/data/audio", "models", "../models" },
 		{ ".wav" }));
-	copyToBuffer(languageBuffer, "auto");
+	copyToBuffer(languageBuffer, !languageFromEnv.empty() ? languageFromEnv : "auto");
+	if (!threadsFromEnv.empty()) {
+		threads = ofClamp(ofToInt(threadsFromEnv), 0, 32);
+	}
+	translate = translateFromEnv == "1" || translateFromEnv == "true" || translateFromEnv == "on";
+	if (!timestampsFromEnv.empty()) {
+		timestamps = !(timestampsFromEnv == "0" || timestampsFromEnv == "false" || timestampsFromEnv == "off");
+	}
 
 	status = "idle";
 	detail = backend.isAvailable()

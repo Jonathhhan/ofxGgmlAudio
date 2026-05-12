@@ -79,6 +79,14 @@ with editable model/audio paths and `ofLog` output. Generate it with the
 openFrameworks projectGenerator using addons `ofxGgmlAudio`, `ofxGgmlCore`, and
 `ofxImGui`.
 
+```powershell
+scripts\build-whisper.bat
+scripts\run-transcribe-example.bat -Build -Model C:\path\to\ggml-base.en.bin -Audio C:\path\to\speech.wav
+```
+
+Use `scripts\run-transcribe-example.bat -DryRun` to check the launch plan
+without starting the example.
+
 ## Dependencies
 
 - openFrameworks

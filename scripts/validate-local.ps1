@@ -77,6 +77,15 @@ Assert-Path (Join-Path $scriptRoot "setup-whisper.sh") "Whisper shell setup wrap
 Assert-Path (Join-Path $scriptRoot "test-whisper-setup-dry-run.ps1") "Whisper setup dry-run test"
 Assert-Path (Join-Path $scriptRoot "test-whisper-setup-dry-run.bat") "Whisper setup dry-run Windows wrapper"
 Assert-Path (Join-Path $scriptRoot "test-whisper-setup-dry-run.sh") "Whisper setup dry-run shell wrapper"
+Assert-Path (Join-Path $scriptRoot "build-transcribe-example.ps1") "transcribe example build script"
+Assert-Path (Join-Path $scriptRoot "build-transcribe-example.bat") "transcribe example Windows build wrapper"
+Assert-Path (Join-Path $scriptRoot "build-transcribe-example.sh") "transcribe example shell build wrapper"
+Assert-Path (Join-Path $scriptRoot "run-transcribe-example.ps1") "transcribe example run script"
+Assert-Path (Join-Path $scriptRoot "run-transcribe-example.bat") "transcribe example Windows run wrapper"
+Assert-Path (Join-Path $scriptRoot "run-transcribe-example.sh") "transcribe example shell run wrapper"
+Assert-Path (Join-Path $scriptRoot "test-launch-dry-run.ps1") "transcribe example launch dry-run test"
+Assert-Path (Join-Path $scriptRoot "test-launch-dry-run.bat") "transcribe example launch dry-run Windows wrapper"
+Assert-Path (Join-Path $scriptRoot "test-launch-dry-run.sh") "transcribe example launch dry-run shell wrapper"
 Assert-Path (Join-Path $addonRoot "libs\whisper\bin\.gitkeep") "Whisper bin placeholder"
 Assert-Path (Join-Path $addonRoot "libs\whisper\include\.gitkeep") "Whisper include placeholder"
 Assert-Path (Join-Path $addonRoot "libs\whisper\lib\.gitkeep") "Whisper lib placeholder"
@@ -107,6 +116,9 @@ foreach ($relative in $forbidden) {
 
 Write-Step "Checking whisper.cpp setup dry-runs"
 & (Join-Path $scriptRoot "test-whisper-setup-dry-run.ps1")
+
+Write-Step "Checking transcribe example launch dry-runs"
+& (Join-Path $scriptRoot "test-launch-dry-run.ps1")
 
 Write-Step "Running headless tests"
 & (Join-Path $scriptRoot "test-addon.ps1")
