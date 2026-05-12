@@ -7,6 +7,8 @@
   openFrameworks example.
 - Added timestamped transcript segments, SRT/WebVTT export helpers, and subtitle
   output from the transcription example when Whisper returns segment timestamps.
+- Added `ofxGgmlAudioRollingTranscript` for accumulating overlapping
+  timestamped transcription chunks into text, SRT, and WebVTT output.
 
 ## 1.0.1 - 2026-05-12
 

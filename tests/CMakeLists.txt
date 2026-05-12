@@ -7,6 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_executable(ofxGgmlAudio_tests
 	test_main.cpp
 	../src/ofxGgmlAudio/ofxGgmlAudioFeatures.cpp
+	../src/ofxGgmlAudio/ofxGgmlAudioRollingTranscript.cpp
 	../src/ofxGgmlAudio/ofxGgmlAudioStreamChunker.cpp
 	../src/ofxGgmlAudio/ofxGgmlAudioUtils.cpp
 	../src/ofxGgmlAudio/ofxGgmlAudioWhisperBackend.cpp)
@@ -33,6 +34,7 @@ if (OFXGGMLAUDIO_BUILD_WHISPER_SMOKE)
 	add_executable(ofxGgmlAudio_whisper_smoke
 		test_whisper_smoke.cpp
 		../src/ofxGgmlAudio/ofxGgmlAudioFeatures.cpp
+		../src/ofxGgmlAudio/ofxGgmlAudioRollingTranscript.cpp
 		../src/ofxGgmlAudio/ofxGgmlAudioStreamChunker.cpp
 		../src/ofxGgmlAudio/ofxGgmlAudioUtils.cpp
 		../src/ofxGgmlAudio/ofxGgmlAudioWhisperBackend.cpp)

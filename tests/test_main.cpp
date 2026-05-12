@@ -126,6 +126,36 @@ int main() {
 		return 1;
 	}
 
+	ofxGgmlAudioRollingTranscript rollingTranscript;
+	if (!rollingTranscript.empty() || rollingTranscript.size() != 0) {
+		std::cerr << "rolling transcript did not start empty\n";
+		return 1;
+	}
+	if (rollingTranscript.addResult(transcriptionResult) != 2 ||
+		rollingTranscript.addResult(transcriptionResult) != 0 ||
+		rollingTranscript.size() != 2 ||
+		rollingTranscript.getText() != "hello\nworld" ||
+		rollingTranscript.buildSrt().find("00:00:01,250") == std::string::npos ||
+		rollingTranscript.buildWebVtt().find("WEBVTT") != 0) {
+		std::cerr << "rolling transcript did not merge transcript result segments\n";
+		return 1;
+	}
+	ofxGgmlAudioStreamResult streamTranscriptResult;
+	streamTranscriptResult.success = true;
+	streamTranscriptResult.segments.push_back({ 4.5, 5.0, " next chunk ", 0.7f });
+	streamTranscriptResult.segments.push_back({ 2.55, 4.05, "world", 0.8f });
+	if (rollingTranscript.addResult(streamTranscriptResult) != 1 ||
+		rollingTranscript.size() != 3 ||
+		rollingTranscript.getSegments().back().text != "next chunk") {
+		std::cerr << "rolling transcript did not deduplicate overlapping chunk segments\n";
+		return 1;
+	}
+	rollingTranscript.clear();
+	if (!rollingTranscript.empty()) {
+		std::cerr << "rolling transcript did not clear\n";
+		return 1;
+	}
+
 	ofxGgmlAudioStreamRequest streamRequest;
 	if (ofxGgmlAudioUtils::hasSamples(streamRequest)) {
 		std::cerr << "empty stream request reported as configured\n";
