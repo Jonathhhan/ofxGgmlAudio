@@ -356,6 +356,16 @@ int main() {
 		std::cerr << "whisper backend transcribed stream without setup\n";
 		return 1;
 	}
+	ofxGgmlAudioStreamRequest invalidWhisperStream;
+	invalidWhisperStream.format.sampleRate = 16000;
+	invalidWhisperStream.format.channels = 2;
+	invalidWhisperStream.samples = { 0.0f, 0.0f, 1.0f };
+	const auto invalidWhisperResult = backend.transcribe(invalidWhisperStream);
+	if (invalidWhisperResult ||
+		invalidWhisperResult.error.find("aligned") == std::string::npos) {
+		std::cerr << "whisper backend masked malformed stream error\n";
+		return 1;
+	}
 
 	return 0;
 }

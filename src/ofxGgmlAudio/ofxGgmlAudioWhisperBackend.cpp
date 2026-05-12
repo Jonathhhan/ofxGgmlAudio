@@ -30,10 +30,6 @@ namespace {
 	}
 
 	bool getMono16kSamples(const ofxGgmlAudioStreamRequest& request, std::vector<float>& samples, std::string& error) {
-		if (!ofxGgmlAudioUtils::hasSamples(request)) {
-			error = "no PCM samples were configured";
-			return false;
-		}
 		if (request.task != ofxGgmlAudioTask::Transcription) {
 			error = "whisper.cpp only handles transcription requests";
 			return false;
