@@ -13,7 +13,7 @@ struct ofxGgmlAudioWhisperSettings {
 	std::string language;
 
 	bool hasModelPath() const {
-		return !modelPath.empty();
+		return modelPath.find_first_not_of(" \t\r\n") != std::string::npos;
 	}
 };
 

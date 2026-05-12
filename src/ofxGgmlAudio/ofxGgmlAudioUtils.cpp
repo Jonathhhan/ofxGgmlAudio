@@ -17,6 +17,10 @@ namespace {
 		}
 	}
 
+	bool hasText(const std::string & value) {
+		return value.find_first_not_of(" \t\r\n") != std::string::npos;
+	}
+
 	bool readBytes(std::ifstream & input, char * data, std::streamsize size) {
 		input.read(data, size);
 		return input.good() || input.gcount() == size;
@@ -56,7 +60,7 @@ namespace {
 
 namespace ofxGgmlAudioUtils {
 	bool hasInput(const ofxGgmlAudioRequest & request) {
-		return !request.audioPath.empty();
+		return hasText(request.audioPath);
 	}
 
 	bool hasSamples(const ofxGgmlAudioStreamRequest & request) {
@@ -194,7 +198,7 @@ namespace ofxGgmlAudioUtils {
 		if (info) {
 			*info = ofxGgmlAudioWavInfo{};
 		}
-		if (path.empty()) {
+		if (!hasText(path)) {
 			setError(error, "audio path is empty");
 			return false;
 		}

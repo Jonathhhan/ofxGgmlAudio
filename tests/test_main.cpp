@@ -57,6 +57,11 @@ int main() {
 		std::cerr << "empty request reported as configured\n";
 		return 1;
 	}
+	request.audioPath = " \t ";
+	if (ofxGgmlAudioUtils::hasInput(request)) {
+		std::cerr << "blank request reported as configured\n";
+		return 1;
+	}
 
 	request.audioPath = "voice/sample.wav";
 	if (!ofxGgmlAudioUtils::hasInput(request)) {
@@ -341,6 +346,11 @@ int main() {
 		return 1;
 	}
 	ofxGgmlAudioWhisperSettings settings;
+	settings.modelPath = " \t ";
+	if (settings.hasModelPath()) {
+		std::cerr << "blank whisper model path reported as configured\n";
+		return 1;
+	}
 	const auto setupResult = backend.setup(settings);
 	if (setupResult) {
 		std::cerr << "whisper backend setup succeeded without model/runtime\n";
