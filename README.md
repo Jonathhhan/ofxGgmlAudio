@@ -74,7 +74,10 @@ broader decoding is added.
 
 ## Example
 
-`ofxGgmlAudioTranscribeExample` is a root-level transcription request smoke test. Generate it with the openFrameworks projectGenerator using addons `ofxGgmlAudio`, `ofxGgmlCore`, and `ofxImGui`.
+`ofxGgmlAudioTranscribeExample` is a root-level Whisper transcription example
+with editable model/audio paths and `ofLog` output. Generate it with the
+openFrameworks projectGenerator using addons `ofxGgmlAudio`, `ofxGgmlCore`, and
+`ofxImGui`.
 
 ## Dependencies
 
