@@ -3,6 +3,7 @@
 #include "imgui.h"
 
 #include <algorithm>
+#include <cctype>
 #include <cstdlib>
 #include <filesystem>
 #include <vector>
@@ -11,6 +12,23 @@ namespace {
 	std::string envValue(const char * name) {
 		const char * value = std::getenv(name);
 		return value ? std::string(value) : std::string();
+	}
+
+	std::string trimText(const std::string & value) {
+		const auto first = value.find_first_not_of(" \t\r\n");
+		if (first == std::string::npos) {
+			return {};
+		}
+		const auto last = value.find_last_not_of(" \t\r\n");
+		return value.substr(first, (last - first) + 1);
+	}
+
+	bool isAutoLanguage(const std::string & value) {
+		std::string lowered = value;
+		std::transform(lowered.begin(), lowered.end(), lowered.begin(), [](unsigned char c) {
+			return static_cast<char>(std::tolower(c));
+		});
+		return lowered == "auto";
 	}
 
 	std::string normalizePath(const std::filesystem::path & path) {
@@ -31,9 +49,9 @@ void ofApp::setup() {
 	ofSetWindowTitle("ofxGgmlAudio transcribe example");
 	gui.setup();
 
-	const auto modelFromEnv = envValue("OFXGGML_AUDIO_MODEL");
-	const auto audioFromEnv = envValue("OFXGGML_AUDIO_FILE");
-	const auto languageFromEnv = envValue("OFXGGML_AUDIO_LANGUAGE");
+	const auto modelFromEnv = trimText(envValue("OFXGGML_AUDIO_MODEL"));
+	const auto audioFromEnv = trimText(envValue("OFXGGML_AUDIO_FILE"));
+	const auto languageFromEnv = trimText(envValue("OFXGGML_AUDIO_LANGUAGE"));
 	const auto threadsFromEnv = envValue("OFXGGML_AUDIO_THREADS");
 	const auto translateFromEnv = envValue("OFXGGML_AUDIO_TRANSLATE");
 	const auto timestampsFromEnv = envValue("OFXGGML_AUDIO_TIMESTAMPS");
@@ -136,16 +154,19 @@ void ofApp::startTranscription() {
 		worker.join();
 	}
 
-	settings.modelPath = modelPathBuffer.data();
+	settings.modelPath = trimText(modelPathBuffer.data());
 	settings.threads = threads;
 	settings.translate = translate;
 	settings.timestamps = timestamps;
-	settings.language = languageBuffer.data();
-	if (settings.language == "auto") {
+	settings.language = trimText(languageBuffer.data());
+	if (isAutoLanguage(settings.language)) {
 		settings.language.clear();
 	}
-	request.audioPath = audioPathBuffer.data();
+	request.audioPath = trimText(audioPathBuffer.data());
 	request.language = settings.language;
+	copyToBuffer(modelPathBuffer, settings.modelPath);
+	copyToBuffer(audioPathBuffer, request.audioPath);
+	copyToBuffer(languageBuffer, settings.language.empty() ? "auto" : settings.language);
 
 	{
 		std::lock_guard<std::mutex> lock(stateMutex);
