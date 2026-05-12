@@ -171,6 +171,10 @@ macOS/Linux:
   `whisper` process, then rerun the build script.
 - If CMake cannot find a compiler, open a Visual Studio Developer PowerShell or
   install the Visual Studio C++ workload.
+- If `projectGenerator.exe` exits nonzero after writing the Visual Studio
+  project, the build script warns, repairs the generated `.vcxproj`, and
+  continues. Treat it as a real failure only when the script stops before
+  MSBuild starts.
 - If the example says Whisper is unavailable, rebuild or rerun it with
   `-WithWhisper`.
 - If the doctor reports missing assets, run `scripts\download-whisper-assets.bat`
