@@ -96,14 +96,17 @@ openFrameworks projectGenerator using addons `ofxGgmlAudio`, `ofxGgmlCore`, and
 First run:
 
 ```powershell
+scripts\doctor-audio.bat
 scripts\quickstart-transcribe-example.bat
 scripts\quickstart-transcribe-example.bat -DryRun
 ```
 
-The quickstart reuses an installed Whisper runtime when present, downloads the
-default tiny model and sample WAV, builds the openFrameworks example with
-`-WithWhisper`, then launches it. Use `-ForceRuntime` to rebuild the optional
-runtime. For manual control, run the lower-level scripts directly:
+`doctor-audio` prints the current setup state and the next likely command when
+something is missing. The quickstart reuses an installed Whisper runtime when
+present, downloads the default tiny model and sample WAV, builds the
+openFrameworks example with `-WithWhisper`, then launches it. Use
+`-ForceRuntime` to rebuild the optional runtime. For manual control, run the
+lower-level scripts directly:
 
 ```powershell
 scripts\build-whisper.bat

@@ -9,6 +9,7 @@ responsive while whisper.cpp works.
 First run:
 
 ```powershell
+..\scripts\doctor-audio.bat
 ..\scripts\quickstart-transcribe-example.bat
 ```
 
