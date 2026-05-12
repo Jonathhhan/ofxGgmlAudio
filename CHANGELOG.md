@@ -1,0 +1,18 @@
+# Changelog
+
+## 1.0.1 - 2026-05-12
+
+- Added independent Audio addon version metadata.
+- Exposed version metadata through the public umbrella header.
+- Documented the release checklist, release policy, and `v1.0.1` scope.
+- Kept Whisper runtime files, models, and sample audio as generated local-only
+  state.
+
+## 1.0.0
+
+- Started `ofxGgmlAudio` as the companion addon for speech recognition,
+  transcription, real-time audio processing, denoising, voice workflows, and
+  audio event helpers on top of `ofxGgmlCore`.
+- Added backend-neutral audio request/result types, stream chunking, lightweight
+  feature helpers, baseline VAD, Whisper setup scripts, and a root-level
+  transcription example lane.

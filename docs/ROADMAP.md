@@ -20,6 +20,7 @@
   requests.
 - Add dependency-free mono mixing and linear resampling to prepare PCM for
   Whisper's 16 kHz input rate.
+- Add independent addon version metadata and release-candidate docs.
 
 ## Next Milestones
 

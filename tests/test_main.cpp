@@ -52,6 +52,15 @@ namespace {
 }
 
 int main() {
+	if (OFXGGML_AUDIO_VERSION_MAJOR != 1 ||
+		OFXGGML_AUDIO_VERSION_MINOR != 0 ||
+		OFXGGML_AUDIO_VERSION_PATCH != 1 ||
+		std::string(OFXGGML_AUDIO_VERSION_STRING) != "1.0.1" ||
+		std::string(ofxGgmlAudioGetVersionString()) != "1.0.1") {
+		std::cerr << "unexpected audio addon version metadata\n";
+		return 1;
+	}
+
 	ofxGgmlAudioRequest request;
 	if (ofxGgmlAudioUtils::hasInput(request)) {
 		std::cerr << "empty request reported as configured\n";

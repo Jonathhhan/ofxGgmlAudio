@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ofxGgmlAudioVersion.h"
 #include "ofxGgmlAudio/ofxGgmlAudioTypes.h"
 #include "ofxGgmlAudio/ofxGgmlAudioFeatures.h"
 #include "ofxGgmlAudio/ofxGgmlAudioStreamChunker.h"
