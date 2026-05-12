@@ -83,6 +83,7 @@ Assert-FileContains (Join-Path $exampleRoot "README.md") "OFXGGML_AUDIO_MODEL" "
 Assert-Path (Join-Path $addonRoot "tests\CMakeLists.txt") "test CMakeLists"
 Assert-Path (Join-Path $addonRoot "tests\test_main.cpp") "test source"
 Assert-Path (Join-Path $addonRoot "tests\test_whisper_smoke.cpp") "Whisper smoke test source"
+Assert-Path (Join-Path $addonRoot "tests\test_whisper_chunked_smoke.cpp") "Whisper chunked smoke test source"
 Assert-Path (Join-Path $scriptRoot "build-whisper.ps1") "Whisper build script"
 Assert-Path (Join-Path $scriptRoot "build-whisper.bat") "Whisper Windows build wrapper"
 Assert-Path (Join-Path $scriptRoot "build-whisper.sh") "Whisper shell build wrapper"
@@ -107,6 +108,9 @@ Assert-Path (Join-Path $scriptRoot "test-whisper-assets-dry-run.sh") "Whisper as
 Assert-Path (Join-Path $scriptRoot "test-whisper-transcribe.ps1") "Whisper transcription smoke script"
 Assert-Path (Join-Path $scriptRoot "test-whisper-transcribe.bat") "Whisper transcription smoke Windows wrapper"
 Assert-Path (Join-Path $scriptRoot "test-whisper-transcribe.sh") "Whisper transcription smoke shell wrapper"
+Assert-Path (Join-Path $scriptRoot "test-whisper-chunked-transcribe.ps1") "Whisper chunked transcription smoke script"
+Assert-Path (Join-Path $scriptRoot "test-whisper-chunked-transcribe.bat") "Whisper chunked transcription smoke Windows wrapper"
+Assert-Path (Join-Path $scriptRoot "test-whisper-chunked-transcribe.sh") "Whisper chunked transcription smoke shell wrapper"
 Assert-Path (Join-Path $scriptRoot "build-transcribe-example.ps1") "transcribe example build script"
 Assert-Path (Join-Path $scriptRoot "build-transcribe-example.bat") "transcribe example Windows build wrapper"
 Assert-Path (Join-Path $scriptRoot "build-transcribe-example.sh") "transcribe example shell build wrapper"
@@ -177,6 +181,14 @@ if (!$whisperSmokeDryRun.Contains("Whisper transcription smoke plan") -or
 	!$whisperSmokeDryRun.Contains("expected text: ask not") -or
 	!$whisperSmokeDryRun.Contains("Dry run complete; no files were changed")) {
 	throw "Whisper transcription smoke dry-run output was unexpected:`n$whisperSmokeDryRun"
+}
+
+Write-Step "Checking Whisper chunked transcription smoke dry-run"
+$whisperChunkedSmokeDryRun = & (Join-Path $scriptRoot "test-whisper-chunked-transcribe.ps1") -DryRun 2>&1 6>&1 | Out-String
+if (!$whisperChunkedSmokeDryRun.Contains("Whisper chunked transcription smoke plan") -or
+	!$whisperChunkedSmokeDryRun.Contains("expected text: ask not") -or
+	!$whisperChunkedSmokeDryRun.Contains("Dry run complete; no files were changed")) {
+	throw "Whisper chunked transcription smoke dry-run output was unexpected:`n$whisperChunkedSmokeDryRun"
 }
 
 Write-Step "Checking transcribe example launch dry-runs"

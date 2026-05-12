@@ -90,15 +90,24 @@ to verify real transcription without opening the openFrameworks example:
 
 ```powershell
 scripts\test-whisper-transcribe.bat
+scripts\test-whisper-chunked-transcribe.bat
 scripts\test-whisper-transcribe.bat -DryRun
+scripts\test-whisper-chunked-transcribe.bat -DryRun
 ```
 
 On macOS/Linux:
 
 ```sh
 ./scripts/test-whisper-transcribe.sh
+./scripts/test-whisper-chunked-transcribe.sh
 ./scripts/test-whisper-transcribe.sh -DryRun
+./scripts/test-whisper-chunked-transcribe.sh -DryRun
 ```
+
+The chunked smoke test runs the same sample WAV through
+`ofxGgmlAudioStreamChunker`, `ofxGgmlAudioWhisperBackend`, and
+`ofxGgmlAudioRollingTranscript`, then verifies text plus subtitle export. Use it
+when changing live-stream, overlap, or rolling transcript code.
 
 The first native transcription path is intentionally narrow: `transcribe()`
 accepts WAV files with 16-bit PCM or 32-bit float samples, mixes multi-channel

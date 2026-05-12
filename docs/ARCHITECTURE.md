@@ -38,3 +38,9 @@ No dependency should point from `ofxGgmlCore` back to this addon.
 `ofxGgmlAudioWhisperBackend` and explicit `scripts/build-whisper.*` setup
 scripts. Do not create `ofxGgmlWhisper` unless the Whisper layer grows into a
 large reusable runtime with multiple consumers outside audio workflows.
+
+The scripted smoke coverage has two levels: `test-whisper-transcribe.*` verifies
+single-file WAV transcription and timestamped subtitle export, while
+`test-whisper-chunked-transcribe.*` verifies the streaming path through
+`ofxGgmlAudioStreamChunker`, `ofxGgmlAudioWhisperBackend`, and
+`ofxGgmlAudioRollingTranscript`.

@@ -156,18 +156,21 @@ export OFXGGML_AUDIO_FILE=/audio/speech.wav
 Use the headless Whisper smoke test when you want to verify the native backend
 without launching a GUI. It expects the generated Whisper runtime, the default
 tiny model, and the sample WAV. It also checks that Whisper returns timestamped
-segments that can be exported as SRT and WebVTT:
+segments that can be exported as SRT and WebVTT. The chunked smoke test runs
+the same WAV through stream chunking and rolling transcript accumulation:
 
 Windows:
 
 ```powershell
 scripts\test-whisper-transcribe.bat
+scripts\test-whisper-chunked-transcribe.bat
 ```
 
 macOS/Linux:
 
 ```sh
 ./scripts/test-whisper-transcribe.sh
+./scripts/test-whisper-chunked-transcribe.sh
 ```
 
 Before pushing changes:

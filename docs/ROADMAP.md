@@ -23,11 +23,13 @@
 - Add timestamped transcript segments plus SRT/WebVTT export helpers.
 - Add a rolling transcript accumulator for overlapping stream transcription
   chunks.
+- Add a scripted chunked Whisper smoke test that validates chunker, backend,
+  rolling transcript, and subtitle export together.
 - Add independent addon version metadata and release-candidate docs.
 
 ## Next Milestones
 
-- Connect the rolling transcript accumulator to the transcribe example or a
+- Connect the rolling transcript accumulator to the transcribe example GUI or a
   dedicated live/streaming example.
 - Add broader media decoding before claiming general audio-file support.
 - Add one useful openFrameworks example that runs with a user-provided Whisper
