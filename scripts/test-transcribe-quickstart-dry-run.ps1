@@ -24,7 +24,7 @@ $script = Join-Path $scriptRoot "quickstart-transcribe-example.ps1"
 Write-Step "Transcribe quickstart default dry-run"
 $defaultOutput = & $script -DryRun 2>&1 6>&1 | Out-String
 Assert-Contains $defaultOutput "Transcribe quickstart plan" "quickstart dry-run"
-Assert-Contains $defaultOutput "runtime: build-whisper" "quickstart dry-run"
+Assert-Contains $defaultOutput "runtime:" "quickstart dry-run"
 Assert-Contains $defaultOutput "assets: tiny.en + jfk.wav" "quickstart dry-run"
 Assert-Contains $defaultOutput "example build: ON" "quickstart dry-run"
 Assert-Contains $defaultOutput "launch: ON" "quickstart dry-run"
@@ -37,5 +37,9 @@ Assert-Contains $buildOnlyOutput "assets: SKIP" "quickstart build-only dry-run"
 Assert-Contains $buildOnlyOutput "launch: OFF" "quickstart build-only dry-run"
 Assert-Contains $buildOnlyOutput "language: en" "quickstart build-only dry-run"
 Assert-Contains $buildOnlyOutput "threads: 4" "quickstart build-only dry-run"
+
+Write-Step "Transcribe quickstart forced-runtime dry-run"
+$forceRuntimeOutput = & $script -DryRun -ForceRuntime 2>&1 6>&1 | Out-String
+Assert-Contains $forceRuntimeOutput "runtime: build-whisper" "quickstart forced-runtime dry-run"
 
 Write-Step "Transcribe quickstart dry-run coverage passed"

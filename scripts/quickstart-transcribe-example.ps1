@@ -13,6 +13,7 @@ param(
 	[switch]$Translate,
 	[switch]$NoTimestamps,
 	[switch]$SkipRuntime,
+	[switch]$ForceRuntime,
 	[switch]$SkipAssets,
 	[switch]$BuildOnly,
 	[switch]$DryRun
@@ -38,11 +39,34 @@ function Invoke-Step {
 	}
 }
 
+function Test-WhisperRuntimeReady {
+	param([string]$Root)
+	foreach ($relative in @(
+		"libs\whisper\include\whisper.h",
+		"libs\whisper\lib\whisper.lib",
+		"libs\whisper\bin\whisper.dll"
+	)) {
+		if (!(Test-Path -LiteralPath (Join-Path $Root $relative) -PathType Leaf)) {
+			return $false
+		}
+	}
+	return $true
+}
+
 $scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
+$addonRoot = Split-Path -Parent $scriptRoot
 $buildWhisper = Join-Path $scriptRoot "build-whisper.ps1"
 $downloadAssets = Join-Path $scriptRoot "download-whisper-assets.ps1"
 $buildExample = Join-Path $scriptRoot "build-transcribe-example.ps1"
 $runExample = Join-Path $scriptRoot "run-transcribe-example.ps1"
+$runtimeReady = Test-WhisperRuntimeReady -Root $addonRoot
+$runtimeAction = if ($SkipRuntime) {
+	"SKIP"
+} elseif ($runtimeReady -and !$ForceRuntime) {
+	"reuse installed runtime"
+} else {
+	"build-whisper"
+}
 
 $runtimeArgs = @("-Configuration", $Configuration)
 if ($CpuOnly) { $runtimeArgs += "-CpuOnly" }
@@ -73,7 +97,7 @@ if ($NoTimestamps) { $runArgs += "-NoTimestamps" }
 
 if ($DryRun) {
 	Write-Step "Transcribe quickstart plan"
-	Write-Host "  runtime: $(if ($SkipRuntime) { 'SKIP' } else { 'build-whisper' })"
+	Write-Host "  runtime: $runtimeAction"
 	Write-Host "  assets: $(if ($SkipAssets) { 'SKIP' } else { $ModelName + ' + jfk.wav' })"
 	Write-Host "  example build: ON"
 	Write-Host "  launch: $(if ($BuildOnly) { 'OFF' } else { 'ON' })"
@@ -87,8 +111,10 @@ if ($DryRun) {
 	return
 }
 
-if (!$SkipRuntime) {
+if (!$SkipRuntime -and (!$runtimeReady -or $ForceRuntime)) {
 	Invoke-Step "Building whisper.cpp runtime" $buildWhisper $runtimeArgs
+} elseif (!$SkipRuntime) {
+	Write-Step "Using installed whisper.cpp runtime"
 }
 if (!$SkipAssets) {
 	Invoke-Step "Downloading Whisper quickstart assets" $downloadAssets $assetArgs

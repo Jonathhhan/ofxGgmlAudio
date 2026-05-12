@@ -100,9 +100,10 @@ scripts\quickstart-transcribe-example.bat
 scripts\quickstart-transcribe-example.bat -DryRun
 ```
 
-The quickstart builds the optional Whisper runtime, downloads the default tiny
-model and sample WAV, builds the openFrameworks example with `-WithWhisper`,
-then launches it. For manual control, run the lower-level scripts directly:
+The quickstart reuses an installed Whisper runtime when present, downloads the
+default tiny model and sample WAV, builds the openFrameworks example with
+`-WithWhisper`, then launches it. Use `-ForceRuntime` to rebuild the optional
+runtime. For manual control, run the lower-level scripts directly:
 
 ```powershell
 scripts\build-whisper.bat
