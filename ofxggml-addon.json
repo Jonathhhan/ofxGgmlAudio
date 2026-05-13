@@ -1,0 +1,25 @@
+{
+  "name": "ofxGgmlAudio",
+  "lane": "audio",
+  "coreBaseline": "v1.0.1",
+  "requires": [
+    "ofxGgmlCore"
+  ],
+  "owns": [
+    "Whisper",
+    "transcription",
+    "voice workflows",
+    "audio inference",
+    "denoising"
+  ],
+  "platforms": [
+    "windows",
+    "macos",
+    "linux"
+  ],
+  "backends": [
+    "cpu",
+    "cuda",
+    "metal"
+  ]
+}
