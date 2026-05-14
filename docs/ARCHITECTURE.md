@@ -44,3 +44,7 @@ single-file WAV transcription and timestamped subtitle export, while
 `test-whisper-chunked-transcribe.*` verifies the streaming path through
 `ofxGgmlAudioStreamChunker`, `ofxGgmlAudioWhisperBackend`, and
 `ofxGgmlAudioRollingTranscript`.
+
+See `docs/AUDIO_WORKFLOWS.md` before expanding the lane beyond Whisper. It
+defines the planning handoff, generated-artifact boundaries, and validation
+ladder for future audio workflows.

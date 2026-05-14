@@ -131,6 +131,8 @@ Generate it with the openFrameworks projectGenerator using addons
 `ofxGgmlAudio`, `ofxGgmlCore`, and `ofxImGui`.
 
 For the full fresh-checkout path, see [docs/QUICKSTART.md](docs/QUICKSTART.md).
+For audio-lane planning and future backend boundaries, see
+[docs/AUDIO_WORKFLOWS.md](docs/AUDIO_WORKFLOWS.md).
 
 First run:
 
