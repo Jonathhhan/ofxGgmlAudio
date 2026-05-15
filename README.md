@@ -89,6 +89,9 @@ After building the runtime and downloading assets, run the headless smoke test
 to verify real transcription without opening the openFrameworks example:
 
 ```powershell
+scripts\run-audio-runtime-smoke.bat -DryRun
+scripts\run-audio-runtime-smoke.bat -Mode simple -Json -SummaryOnly
+scripts\run-audio-runtime-smoke.bat -Mode chunked -Json -SummaryOnly
 scripts\test-whisper-transcribe.bat
 scripts\test-whisper-chunked-transcribe.bat
 scripts\test-whisper-transcribe.bat -DryRun
@@ -98,6 +101,9 @@ scripts\test-whisper-chunked-transcribe.bat -DryRun
 On macOS/Linux:
 
 ```sh
+./scripts/run-audio-runtime-smoke.sh -DryRun
+./scripts/run-audio-runtime-smoke.sh -Mode simple -Json -SummaryOnly
+./scripts/run-audio-runtime-smoke.sh -Mode chunked -Json -SummaryOnly
 ./scripts/test-whisper-transcribe.sh
 ./scripts/test-whisper-chunked-transcribe.sh
 ./scripts/test-whisper-transcribe.sh -DryRun
@@ -138,6 +144,7 @@ First run:
 
 ```powershell
 scripts\doctor-audio.bat
+scripts\run-audio-runtime-smoke.bat -DryRun
 scripts\quickstart-transcribe-example.bat
 scripts\quickstart-transcribe-example.bat -DryRun
 ```
