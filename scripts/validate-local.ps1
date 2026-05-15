@@ -119,6 +119,10 @@ Assert-Path (Join-Path $scriptRoot "test-whisper-transcribe.sh") "Whisper transc
 Assert-Path (Join-Path $scriptRoot "test-whisper-chunked-transcribe.ps1") "Whisper chunked transcription smoke script"
 Assert-Path (Join-Path $scriptRoot "test-whisper-chunked-transcribe.bat") "Whisper chunked transcription smoke Windows wrapper"
 Assert-Path (Join-Path $scriptRoot "test-whisper-chunked-transcribe.sh") "Whisper chunked transcription smoke shell wrapper"
+Assert-Path (Join-Path $scriptRoot "run-audio-runtime-smoke.ps1") "Audio runtime smoke script"
+Assert-Path (Join-Path $scriptRoot "run-audio-runtime-smoke.bat") "Audio runtime smoke Windows wrapper"
+Assert-Path (Join-Path $scriptRoot "run-audio-runtime-smoke.sh") "Audio runtime smoke shell wrapper"
+Assert-Path (Join-Path $scriptRoot "test-audio-runtime-smoke.ps1") "Audio runtime smoke contract test"
 Assert-Path (Join-Path $scriptRoot "build-transcribe-example.ps1") "transcribe example build script"
 Assert-Path (Join-Path $scriptRoot "build-transcribe-example.bat") "transcribe example Windows build wrapper"
 Assert-Path (Join-Path $scriptRoot "build-transcribe-example.sh") "transcribe example shell build wrapper"
@@ -197,6 +201,12 @@ if (!$whisperChunkedSmokeDryRun.Contains("Whisper chunked transcription smoke pl
 	!$whisperChunkedSmokeDryRun.Contains("expected text: ask not") -or
 	!$whisperChunkedSmokeDryRun.Contains("Dry run complete; no files were changed")) {
 	throw "Whisper chunked transcription smoke dry-run output was unexpected:`n$whisperChunkedSmokeDryRun"
+}
+
+Write-Step "Checking Audio runtime smoke contract"
+& (Join-Path $scriptRoot "test-audio-runtime-smoke.ps1")
+if ($LASTEXITCODE -ne 0) {
+	throw "Audio runtime smoke contract failed with exit code $LASTEXITCODE"
 }
 
 Write-Step "Checking transcribe example launch dry-runs"

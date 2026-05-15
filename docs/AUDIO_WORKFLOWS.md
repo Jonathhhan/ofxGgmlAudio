@@ -46,6 +46,11 @@ Prefer documentation, validation, or example scaffolding first. Runtime changes
 should name the backend involved, the local artifacts they need, and the
 headless smoke test that proves the workflow still works.
 
+The lane-owned runtime smoke wraps the existing Whisper transcription and
+chunked transcription smoke tests. It reports dry-run and JSON summary evidence
+for Core planning while preserving the native smoke tests as the source of
+truth for model-backed transcription behavior.
+
 ## Validation ladder
 
 Use the smallest command that proves the changed layer:
@@ -57,6 +62,9 @@ Use the smallest command that proves the changed layer:
 | Asset download scripts | `scripts\test-whisper-assets-dry-run.bat` |
 | Example launch path | `scripts\test-launch-dry-run.bat` |
 | Quickstart path | `scripts\test-transcribe-quickstart-dry-run.bat` |
+| Audio runtime smoke planning | `scripts\run-audio-runtime-smoke.bat -DryRun` |
+| Audio simple runtime transcription | `scripts\run-audio-runtime-smoke.bat -Mode simple -Json -SummaryOnly` |
+| Audio chunked runtime transcription | `scripts\run-audio-runtime-smoke.bat -Mode chunked -Json -SummaryOnly` |
 | Native transcription | `scripts\test-whisper-transcribe.bat` |
 | Streaming transcript path | `scripts\test-whisper-chunked-transcribe.bat` |
 
