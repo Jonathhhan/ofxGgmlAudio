@@ -25,6 +25,7 @@ private:
 	ofxGgmlAudioResult runChunkedTranscription();
 	void setStatus(const std::string & nextStatus, const std::string & nextDetail);
 	static std::string findFirstFile(const std::vector<std::string> & directories, const std::vector<std::string> & extensions);
+	static std::string chooseFile(const std::string & title, const std::string & currentPath);
 	static void copyToBuffer(std::array<char, 1024> & buffer, const std::string & value);
 	static void copyToBuffer(std::array<char, 64> & buffer, const std::string & value);
 
