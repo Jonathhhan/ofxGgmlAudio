@@ -59,6 +59,18 @@ Assert-Contains $buildOutput "configuration: $Configuration" "Build dry-run"
 Assert-Contains $buildOutput "platform: $Platform" "Build dry-run"
 Assert-Contains $buildOutput "with whisper: OFF" "Build dry-run"
 
+Write-Step "Whisper example build dry-run"
+$whisperBuildOutput = & (Join-Path $scriptRoot "build-whisper-example.ps1") `
+	-DryRun `
+	-Configuration $Configuration `
+	-Platform $Platform *>&1 | ForEach-Object { $_.ToString() }
+if (!$?) {
+	throw "Whisper example build dry-run failed."
+}
+Assert-Contains $whisperBuildOutput "Whisper example build plan" "Whisper build dry-run"
+Assert-Contains $whisperBuildOutput "ofxGgmlAudioWhisperExample" "Whisper build dry-run"
+Assert-Contains $whisperBuildOutput "with whisper: OFF" "Whisper build dry-run"
+
 Write-Step "Transcribe example launch dry-run"
 $runOutput = & (Join-Path $scriptRoot "run-transcribe-example.ps1") `
 	-DryRun `
@@ -81,6 +93,29 @@ Assert-Contains $runOutput "Translate: ON" "Launch dry-run"
 Assert-Contains $runOutput "Timestamps: OFF" "Launch dry-run"
 Assert-Contains $runOutput "Executable:" "Launch dry-run"
 Assert-NotContains $runOutput "Starting ofxGgmlAudioTranscribeExample" "Launch dry-run"
+
+Write-Step "Whisper example launch dry-run"
+$whisperRunOutput = & (Join-Path $scriptRoot "run-whisper-example.ps1") `
+	-DryRun `
+	-Model $modelPath `
+	-Audio $audioPath `
+	-Language "en" `
+	-Threads 4 `
+	-Translate `
+	-NoTimestamps `
+	-Configuration $Configuration `
+	-Platform $Platform *>&1 | ForEach-Object { $_.ToString() }
+if (!$?) {
+	throw "Whisper example launch dry-run failed."
+}
+Assert-Contains $whisperRunOutput "Using Whisper model: $modelPath" "Whisper launch dry-run"
+Assert-Contains $whisperRunOutput "Using audio file: $audioPath" "Whisper launch dry-run"
+Assert-Contains $whisperRunOutput "Language: en" "Whisper launch dry-run"
+Assert-Contains $whisperRunOutput "Threads: 4" "Whisper launch dry-run"
+Assert-Contains $whisperRunOutput "Translate: ON" "Whisper launch dry-run"
+Assert-Contains $whisperRunOutput "Timestamps: OFF" "Whisper launch dry-run"
+Assert-Contains $whisperRunOutput "ofxGgmlAudioWhisperExample.exe" "Whisper launch dry-run"
+Assert-NotContains $whisperRunOutput "Starting ofxGgmlAudioWhisperExample" "Whisper launch dry-run"
 
 Write-Step "Transcribe example env flag dry-run"
 $previousTranslate = $env:OFXGGML_AUDIO_TRANSLATE
