@@ -5,7 +5,8 @@ param(
 	[string]$Platform = "x64",
 	[switch]$Clean,
 	[switch]$WithWhisper,
-	[switch]$DryRun
+	[switch]$DryRun,
+	[int]$Jobs = 1
 )
 
 $ErrorActionPreference = "Stop"
@@ -82,6 +83,25 @@ function Get-MsBuild {
 	return ""
 }
 
+function Resolve-BuildJobs {
+	param([int]$RequestedJobs)
+	if ($RequestedJobs -lt 0) {
+		throw "-Jobs must be 0 or greater."
+	}
+	if ($RequestedJobs -eq 0) {
+		return [Environment]::ProcessorCount
+	}
+	return $RequestedJobs
+}
+
+function Get-MsBuildParallelArguments {
+	param([int]$BuildJobs)
+	if ($BuildJobs -gt 1) {
+		return @("/p:MultiProcessorCompilation=true", "/m:$BuildJobs")
+	}
+	return @("/p:MultiProcessorCompilation=false", "/m:1")
+}
+
 function Invoke-Checked {
 	param(
 		[string]$Step,
@@ -90,6 +110,39 @@ function Invoke-Checked {
 	& $Command
 	if ($LASTEXITCODE -ne 0) {
 		throw "$Step failed with exit code $LASTEXITCODE"
+	}
+}
+
+function Get-StableNameFragment {
+	param([string]$Text)
+	$sha1 = [System.Security.Cryptography.SHA1]::Create()
+	try {
+		$bytes = [System.Text.Encoding]::UTF8.GetBytes($Text)
+		$hash = $sha1.ComputeHash($bytes)
+		return [System.BitConverter]::ToString($hash).Replace("-", "")
+	} finally {
+		$sha1.Dispose()
+	}
+}
+
+function Invoke-WithNamedMutex {
+	param(
+		[string]$Name,
+		[scriptblock]$Command
+	)
+	$mutex = New-Object System.Threading.Mutex($false, $Name)
+	$locked = $false
+	try {
+		$locked = $mutex.WaitOne([TimeSpan]::FromMinutes(30))
+		if (!$locked) {
+			throw "Timed out waiting for build lock: $Name"
+		}
+		& $Command
+	} finally {
+		if ($locked) {
+			$mutex.ReleaseMutex()
+		}
+		$mutex.Dispose()
 	}
 }
 
@@ -488,6 +541,7 @@ if ($DryRun) {
 	Write-Host "  platform: $Platform"
 	Write-Host "  clean: $(if ($Clean) { 'ON' } else { 'OFF' })"
 	Write-Host "  with whisper: $(if ($WithWhisper) { 'ON' } else { 'OFF' })"
+	Write-Host "  jobs: $Jobs"
 	Write-Host "  whisper runtime: $(Join-Path $addonRoot 'libs\whisper')"
 	Write-Host "  projectGenerator: $(Find-ProjectGenerator -OfRoot $ofRoot)"
 	Write-Host "  msbuild: $(Get-MsBuild)"
@@ -515,9 +569,14 @@ if (Test-WindowsHost) {
 		throw "MSBuild.exe was not found."
 	}
 	$target = if ($Clean) { "Rebuild" } else { "Build" }
-	Write-Step "Building $exampleName $Configuration $Platform"
-	Invoke-Checked "MSBuild $exampleName" {
-		& $msbuild $projectPath /t:$target /p:Configuration=$Configuration /p:Platform=$Platform /p:TrackFileAccess=false /m:1 /nr:false
+	$buildJobs = Resolve-BuildJobs -RequestedJobs $Jobs
+	$parallelArgs = Get-MsBuildParallelArguments -BuildJobs $buildJobs
+	Write-Step "Building $exampleName $Configuration $Platform with MSBuild ($buildJobs jobs)"
+	$lockName = "Local\ofxGgml-msbuild-" + (Get-StableNameFragment $ofRoot)
+	Invoke-WithNamedMutex -Name $lockName -Command {
+		Invoke-Checked "MSBuild $exampleName" {
+			& $msbuild $projectPath /t:$target /p:Configuration=$Configuration /p:Platform=$Platform /p:TrackFileAccess=false @parallelArgs /nr:false
+		}
 	}
 	if ($WithWhisper) {
 		Copy-WhisperRuntimeDll -AudioRoot $addonRoot -ExampleRoot $exampleRoot

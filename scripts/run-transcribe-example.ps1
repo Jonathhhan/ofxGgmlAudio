@@ -11,7 +11,8 @@ param(
 	[switch]$WithWhisper,
 	[switch]$DryRun,
 	[string]$Configuration = "Release",
-	[string]$Platform = "x64"
+	[string]$Platform = "x64",
+	[int]$Jobs = 1
 )
 
 $ErrorActionPreference = "Stop"
@@ -70,15 +71,15 @@ $exampleRoot = Join-Path $addonRoot $exampleName
 $exampleExe = Join-Path $exampleRoot "bin\$exampleName.exe"
 
 if ($Build) {
-	$buildArgs = @(
-		"-Configuration", $Configuration,
-		"-Platform", $Platform
-	)
-	if ($WithWhisper) {
-		$buildArgs += "-WithWhisper"
+	$buildArgs = @{
+		Configuration = $Configuration
+		Platform = $Platform
+		Jobs = $Jobs
+		Example = $Example
 	}
-	$buildArgs += "-Example"
-	$buildArgs += $Example
+	if ($WithWhisper) {
+		$buildArgs.WithWhisper = $true
+	}
 	& (Join-Path $scriptRoot "build-transcribe-example.ps1") @buildArgs
 	if ($LASTEXITCODE -ne 0) {
 		exit $LASTEXITCODE
