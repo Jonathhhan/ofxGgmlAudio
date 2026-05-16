@@ -187,7 +187,19 @@ void ofApp::draw() {
 	if (!canEdit) {
 		ImGui::BeginDisabled();
 	}
+	if (ImGui::Button("Choose Model")) {
+		const auto selectedPath = chooseFile("Choose Whisper model", modelPathBuffer.data());
+		if (!selectedPath.empty()) {
+			copyToBuffer(modelPathBuffer, selectedPath);
+		}
+	}
 	ImGui::InputText("Model", modelPathBuffer.data(), modelPathBuffer.size());
+	if (ImGui::Button("Choose Audio")) {
+		const auto selectedPath = chooseFile("Choose audio file", audioPathBuffer.data());
+		if (!selectedPath.empty()) {
+			copyToBuffer(audioPathBuffer, selectedPath);
+		}
+	}
 	ImGui::InputText("Audio", audioPathBuffer.data(), audioPathBuffer.size());
 	ImGui::InputText("Language", languageBuffer.data(), languageBuffer.size());
 	ImGui::SliderInt("Threads", &threads, 0, 32);
@@ -434,6 +446,13 @@ std::string ofApp::findFirstFile(const std::vector<std::string> & directories, c
 		}
 	}
 	return {};
+}
+
+std::string ofApp::chooseFile(const std::string & title, const std::string & currentPath) {
+	const auto normalizedPath = trimText(currentPath);
+	const auto startPath = normalizedPath.empty() ? ofToDataPath("", true) : normalizedPath;
+	auto result = ofSystemLoadDialog(title, false, startPath);
+	return result.bSuccess ? trimText(result.getPath()) : std::string();
 }
 
 void ofApp::copyToBuffer(std::array<char, 1024> & buffer, const std::string & value) {
