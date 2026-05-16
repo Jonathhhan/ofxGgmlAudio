@@ -35,5 +35,26 @@ if ($json.Mode -ne "all") {
 if (($json.NextCommands -join "`n") -notmatch "run-audio-runtime-smoke\.bat -Mode simple") {
 	throw "Audio runtime smoke JSON did not include the simple runtime command."
 }
+if ($json.SmokeKind -ne "model-backed-whisper-transcription") {
+	throw "Audio runtime smoke JSON did not include the expected smoke kind."
+}
+if ($json.Backend -ne "whisper.cpp") {
+	throw "Audio runtime smoke JSON did not include the expected backend."
+}
+
+$evidencePath = Join-Path ([System.IO.Path]::GetTempPath()) "ofxGgmlAudio-runtime-smoke-evidence.json"
+Remove-Item -LiteralPath $evidencePath -Force -ErrorAction SilentlyContinue
+$null = & $smokeScript -DryRun -Mode simple -Json -SummaryOnly -OutputPath $evidencePath
+if ($LASTEXITCODE -ne 0) {
+	throw "run-audio-runtime-smoke.ps1 evidence dry-run failed."
+}
+if (!(Test-Path -LiteralPath $evidencePath -PathType Leaf)) {
+	throw "Audio runtime smoke did not write dry-run evidence output."
+}
+$evidence = Get-Content -LiteralPath $evidencePath -Raw | ConvertFrom-Json
+if ($evidence.SmokeKind -ne "model-backed-whisper-transcription") {
+	throw "Audio runtime smoke evidence did not preserve the smoke kind."
+}
+Remove-Item -LiteralPath $evidencePath -Force -ErrorAction SilentlyContinue
 
 Write-Host "Audio runtime smoke contract passed"
