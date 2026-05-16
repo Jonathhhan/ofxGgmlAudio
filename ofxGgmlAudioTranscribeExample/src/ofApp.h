@@ -32,6 +32,7 @@ private:
 	ofxImGui::Gui gui;
 	ofxGgmlAudioWhisperBackend backend;
 	ofxGgmlAudioWhisperSettings settings;
+	ofxGgmlAudioWhisperRuntimeInfo runtimeInfo;
 	ofxGgmlAudioRequest request;
 	ofxGgmlAudioResult result;
 	std::array<char, 1024> modelPathBuffer {};

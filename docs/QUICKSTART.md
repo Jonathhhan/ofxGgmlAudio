@@ -127,6 +127,11 @@ The example accepts a Whisper `.bin` model and a WAV input. The native path
 currently supports 16-bit PCM and 32-bit float WAV files, then mixes to mono and
 resamples to 16 kHz for Whisper.
 
+The example Runtime panel shows the compiled/loaded Whisper state, CPU/GPU
+acceleration flags reported by whisper.cpp, loaded model path, and effective CPU
+worker thread count. The threads control changes CPU worker scheduling only; it
+does not disable or enable GPU inference.
+
 Windows:
 
 ```powershell

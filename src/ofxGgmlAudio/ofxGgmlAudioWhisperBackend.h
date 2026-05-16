@@ -17,6 +17,18 @@ struct ofxGgmlAudioWhisperSettings {
 	}
 };
 
+struct ofxGgmlAudioWhisperRuntimeInfo {
+	bool compiled = false;
+	bool loaded = false;
+	bool gpuRequested = false;
+	bool gpuAvailable = false;
+	std::string acceleration = "unavailable";
+	std::string systemInfo;
+	int configuredThreads = 0;
+	int effectiveThreads = 0;
+	std::string modelPath;
+};
+
 class ofxGgmlAudioWhisperBackend {
 public:
 	ofxGgmlAudioWhisperBackend();
@@ -32,6 +44,7 @@ public:
 	bool isLoaded() const;
 	std::string getBackendName() const;
 	ofxGgmlAudioWhisperSettings getSettings() const;
+	ofxGgmlAudioWhisperRuntimeInfo getRuntimeInfo() const;
 
 	ofxGgmlAudioResult setup(const ofxGgmlAudioWhisperSettings& settings);
 	ofxGgmlAudioResult transcribe(const ofxGgmlAudioRequest& request);
