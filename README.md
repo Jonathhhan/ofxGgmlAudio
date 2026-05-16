@@ -127,14 +127,14 @@ segments into subtitle files.
 
 ## Example
 
-`ofxGgmlAudioTranscribeExample` is a root-level Whisper transcription example
-with editable model/audio paths and `ofLog` output. When timestamped segments
-are available, it writes `.srt` and `.vtt` subtitles next to the input WAV.
-Enable `Chunked rolling transcript` in the GUI to process the WAV through
-overlapping stream windows and update the transcript after each chunk. Cancelling
-stops after the current chunk and keeps any accumulated rolling transcript.
-Generate it with the openFrameworks projectGenerator using addons
-`ofxGgmlAudio`, `ofxGgmlCore`, and `ofxImGui`.
+`ofxGgmlAudioWhisperExample` is the explicit root-level Whisper example. It has
+editable model/audio paths, language, threads, translation, timestamps, chunked
+rolling transcript mode, and `ofLog` output. `ofxGgmlAudioTranscribeExample`
+keeps the same backend path under the older transcribe example name. When
+timestamped segments are available, the shared example UI writes `.srt` and
+`.vtt` subtitles next to the input WAV. Generate either example with the
+openFrameworks projectGenerator using addons `ofxGgmlAudio`, `ofxGgmlCore`, and
+`ofxImGui`.
 
 For the full fresh-checkout path, see [docs/QUICKSTART.md](docs/QUICKSTART.md).
 For audio-lane planning and future backend boundaries, see
@@ -145,6 +145,8 @@ First run:
 ```powershell
 scripts\doctor-audio.bat
 scripts\run-audio-runtime-smoke.bat -DryRun
+scripts\build-whisper-example.bat -WithWhisper
+scripts\run-whisper-example.bat
 scripts\quickstart-transcribe-example.bat
 scripts\quickstart-transcribe-example.bat -DryRun
 ```

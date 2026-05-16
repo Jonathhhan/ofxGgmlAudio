@@ -1,4 +1,6 @@
 param(
+	[ValidateSet("transcribe", "whisper")]
+	[string]$Example = "transcribe",
 	[string]$ExampleRoot = "",
 	[switch]$DryRun
 )
@@ -47,14 +49,16 @@ function Remove-GeneratedPath {
 
 $scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $addonRoot = Resolve-Path -LiteralPath (Join-Path $scriptRoot "..")
-$exampleName = "ofxGgmlAudioTranscribeExample"
+$exampleName = if ($Example -eq "whisper") { "ofxGgmlAudioWhisperExample" } else { "ofxGgmlAudioTranscribeExample" }
+$exampleLabel = if ($Example -eq "whisper") { "Whisper" } else { "Transcribe" }
 if ([string]::IsNullOrWhiteSpace($ExampleRoot)) {
 	$ExampleRoot = Join-Path $addonRoot $exampleName
 }
 if (!(Test-Path -LiteralPath $ExampleRoot -PathType Container)) {
-	throw "Transcribe example directory was not found: $ExampleRoot"
+	throw "$exampleLabel example directory was not found: $ExampleRoot"
 }
 $exampleRoot = (Resolve-Path -LiteralPath $ExampleRoot).Path
+$exampleName = Split-Path -Leaf $exampleRoot
 
 $generatedPaths = @(
 	"bin",
@@ -71,7 +75,7 @@ $generatedPaths = @(
 	"$exampleName.xcodeproj"
 )
 
-Write-Step "Transcribe example generated artifact cleanup"
+Write-Step "$exampleLabel example generated artifact cleanup"
 Write-Host "  example: $exampleRoot"
 Write-Host "  dry run: $(if ($DryRun) { 'ON' } else { 'OFF' })"
 

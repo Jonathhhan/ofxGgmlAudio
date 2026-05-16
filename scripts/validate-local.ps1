@@ -75,19 +75,32 @@ Assert-Path (Join-Path $addonsRoot "ofxGgmlCore") "sibling ofxGgmlCore addon" -D
 Assert-Path (Join-Path $addonsRoot "ofxImGui") "sibling ofxImGui addon for examples" -Directory
 
 Write-Step "Checking example layout"
-$exampleRoot = Join-Path $addonRoot "ofxGgmlAudioTranscribeExample"
-Assert-Path $exampleRoot "root-level smoke example" -Directory
-Assert-Path (Join-Path $exampleRoot "addons.make") "smoke example addons.make"
-Assert-FileContains (Join-Path $exampleRoot "addons.make") "(?m)^ofxImGui\s*$" "smoke example addons.make"
-Assert-Path (Join-Path $exampleRoot "src\main.cpp") "smoke example main.cpp"
-Assert-Path (Join-Path $exampleRoot "src\ofApp.h") "smoke example ofApp.h"
-Assert-Path (Join-Path $exampleRoot "src\ofApp.cpp") "smoke example ofApp.cpp"
-Assert-FileContains (Join-Path $exampleRoot "src\ofApp.h") "runChunkedTranscription" "smoke example chunked transcription header"
-Assert-FileContains (Join-Path $exampleRoot "src\ofApp.cpp") "Chunked rolling transcript" "smoke example chunked transcription UI"
-Assert-FileContains (Join-Path $exampleRoot "src\ofApp.cpp") "ofxGgmlAudioRollingTranscript" "smoke example rolling transcript source"
-Assert-FileContains (Join-Path $exampleRoot "README.md") "..\\scripts\\quickstart-transcribe-example.bat" "smoke example README"
-Assert-FileContains (Join-Path $exampleRoot "README.md") "../scripts/quickstart-transcribe-example.sh" "smoke example README"
-Assert-FileContains (Join-Path $exampleRoot "README.md") "OFXGGML_AUDIO_MODEL" "smoke example README"
+$transcribeExampleRoot = Join-Path $addonRoot "ofxGgmlAudioTranscribeExample"
+Assert-Path $transcribeExampleRoot "root-level transcribe example" -Directory
+Assert-Path (Join-Path $transcribeExampleRoot "addons.make") "transcribe example addons.make"
+Assert-FileContains (Join-Path $transcribeExampleRoot "addons.make") "(?m)^ofxImGui\s*$" "transcribe example addons.make"
+Assert-Path (Join-Path $transcribeExampleRoot "src\main.cpp") "transcribe example main.cpp"
+Assert-Path (Join-Path $transcribeExampleRoot "src\ofApp.h") "transcribe example ofApp.h"
+Assert-Path (Join-Path $transcribeExampleRoot "src\ofApp.cpp") "transcribe example ofApp.cpp"
+Assert-FileContains (Join-Path $transcribeExampleRoot "src\ofApp.h") "runChunkedTranscription" "transcribe example chunked transcription header"
+Assert-FileContains (Join-Path $transcribeExampleRoot "src\ofApp.cpp") "Chunked rolling transcript" "transcribe example chunked transcription UI"
+Assert-FileContains (Join-Path $transcribeExampleRoot "src\ofApp.cpp") "ofxGgmlAudioRollingTranscript" "transcribe example rolling transcript source"
+Assert-FileContains (Join-Path $transcribeExampleRoot "README.md") "..\\scripts\\quickstart-transcribe-example.bat" "transcribe example README"
+Assert-FileContains (Join-Path $transcribeExampleRoot "README.md") "../scripts/quickstart-transcribe-example.sh" "transcribe example README"
+Assert-FileContains (Join-Path $transcribeExampleRoot "README.md") "OFXGGML_AUDIO_MODEL" "transcribe example README"
+
+$whisperExampleRoot = Join-Path $addonRoot "ofxGgmlAudioWhisperExample"
+Assert-Path $whisperExampleRoot "root-level Whisper example" -Directory
+Assert-Path (Join-Path $whisperExampleRoot "addons.make") "Whisper example addons.make"
+Assert-FileContains (Join-Path $whisperExampleRoot "addons.make") "(?m)^ofxImGui\s*$" "Whisper example addons.make"
+Assert-Path (Join-Path $whisperExampleRoot "src\main.cpp") "Whisper example main.cpp"
+Assert-Path (Join-Path $whisperExampleRoot "src\ofApp.h") "Whisper example ofApp.h"
+Assert-Path (Join-Path $whisperExampleRoot "src\ofApp.cpp") "Whisper example ofApp.cpp"
+Assert-FileContains (Join-Path $whisperExampleRoot "src\ofApp.cpp") "OFXGGML_AUDIO_EXAMPLE_LOG_MODULE" "Whisper example wrapper source"
+Assert-FileContains (Join-Path $whisperExampleRoot "src\ofApp.cpp") "ofxGgmlAudioWhisperExample" "Whisper example wrapper source"
+Assert-FileContains (Join-Path $whisperExampleRoot "README.md") "..\\scripts\\build-whisper-example.bat" "Whisper example README"
+Assert-FileContains (Join-Path $whisperExampleRoot "README.md") "../scripts/build-whisper-example.sh" "Whisper example README"
+Assert-FileContains (Join-Path $whisperExampleRoot "README.md") "OFXGGML_AUDIO_MODEL" "Whisper example README"
 Assert-Path (Join-Path $addonRoot "tests\CMakeLists.txt") "test CMakeLists"
 Assert-Path (Join-Path $addonRoot "tests\test_main.cpp") "test source"
 Assert-Path (Join-Path $addonRoot "tests\test_whisper_smoke.cpp") "Whisper smoke test source"
@@ -126,6 +139,9 @@ Assert-Path (Join-Path $scriptRoot "test-audio-runtime-smoke.ps1") "Audio runtim
 Assert-Path (Join-Path $scriptRoot "build-transcribe-example.ps1") "transcribe example build script"
 Assert-Path (Join-Path $scriptRoot "build-transcribe-example.bat") "transcribe example Windows build wrapper"
 Assert-Path (Join-Path $scriptRoot "build-transcribe-example.sh") "transcribe example shell build wrapper"
+Assert-Path (Join-Path $scriptRoot "build-whisper-example.ps1") "Whisper example build script"
+Assert-Path (Join-Path $scriptRoot "build-whisper-example.bat") "Whisper example Windows build wrapper"
+Assert-Path (Join-Path $scriptRoot "build-whisper-example.sh") "Whisper example shell build wrapper"
 Assert-Path (Join-Path $scriptRoot "clean-transcribe-example.ps1") "transcribe example clean script"
 Assert-Path (Join-Path $scriptRoot "clean-transcribe-example.bat") "transcribe example clean Windows wrapper"
 Assert-Path (Join-Path $scriptRoot "clean-transcribe-example.sh") "transcribe example clean shell wrapper"
@@ -135,6 +151,9 @@ Assert-Path (Join-Path $scriptRoot "test-clean-transcribe-example.sh") "transcri
 Assert-Path (Join-Path $scriptRoot "run-transcribe-example.ps1") "transcribe example run script"
 Assert-Path (Join-Path $scriptRoot "run-transcribe-example.bat") "transcribe example Windows run wrapper"
 Assert-Path (Join-Path $scriptRoot "run-transcribe-example.sh") "transcribe example shell run wrapper"
+Assert-Path (Join-Path $scriptRoot "run-whisper-example.ps1") "Whisper example run script"
+Assert-Path (Join-Path $scriptRoot "run-whisper-example.bat") "Whisper example Windows run wrapper"
+Assert-Path (Join-Path $scriptRoot "run-whisper-example.sh") "Whisper example shell run wrapper"
 Assert-Path (Join-Path $scriptRoot "quickstart-transcribe-example.ps1") "transcribe quickstart script"
 Assert-Path (Join-Path $scriptRoot "quickstart-transcribe-example.bat") "transcribe quickstart Windows wrapper"
 Assert-Path (Join-Path $scriptRoot "quickstart-transcribe-example.sh") "transcribe quickstart shell wrapper"
@@ -164,6 +183,9 @@ $forbidden = @(
 	"ofxGgmlAudioTranscribeExample\bin",
 	"ofxGgmlAudioTranscribeExample\obj",
 	"ofxGgmlAudioTranscribeExample\.vs",
+	"ofxGgmlAudioWhisperExample\bin",
+	"ofxGgmlAudioWhisperExample\obj",
+	"ofxGgmlAudioWhisperExample\.vs",
 	"libs\whisper\.source",
 	"libs\whisper\build"
 )

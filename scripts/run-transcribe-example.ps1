@@ -1,4 +1,6 @@
 param(
+	[ValidateSet("transcribe", "whisper")]
+	[string]$Example = "transcribe",
 	[string]$Model = $env:OFXGGML_AUDIO_MODEL,
 	[string]$Audio = $env:OFXGGML_AUDIO_FILE,
 	[string]$Language = $(if ($env:OFXGGML_AUDIO_LANGUAGE) { $env:OFXGGML_AUDIO_LANGUAGE } else { "auto" }),
@@ -62,7 +64,8 @@ function Find-FirstFile {
 
 $scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $addonRoot = Resolve-Path (Join-Path $scriptRoot "..")
-$exampleName = "ofxGgmlAudioTranscribeExample"
+$exampleName = if ($Example -eq "whisper") { "ofxGgmlAudioWhisperExample" } else { "ofxGgmlAudioTranscribeExample" }
+$exampleLabel = if ($Example -eq "whisper") { "Whisper" } else { "Transcribe" }
 $exampleRoot = Join-Path $addonRoot $exampleName
 $exampleExe = Join-Path $exampleRoot "bin\$exampleName.exe"
 
@@ -74,6 +77,8 @@ if ($Build) {
 	if ($WithWhisper) {
 		$buildArgs += "-WithWhisper"
 	}
+	$buildArgs += "-Example"
+	$buildArgs += $Example
 	& (Join-Path $scriptRoot "build-transcribe-example.ps1") @buildArgs
 	if ($LASTEXITCODE -ne 0) {
 		exit $LASTEXITCODE
@@ -82,9 +87,9 @@ if ($Build) {
 
 if (!(Test-Path -LiteralPath $exampleExe -PathType Leaf)) {
 	if ($DryRun) {
-		Write-Warning "Transcribe example executable was not found: $exampleExe"
+		Write-Warning "$exampleLabel example executable was not found: $exampleExe"
 	} else {
-		throw "Transcribe example executable was not found: $exampleExe. Run scripts\run-transcribe-example.bat -Build first."
+		throw "$exampleLabel example executable was not found: $exampleExe. Run scripts\run-transcribe-example.bat -Example $Example -Build first."
 	}
 }
 

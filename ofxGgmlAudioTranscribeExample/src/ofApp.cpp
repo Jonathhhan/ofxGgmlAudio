@@ -9,6 +9,19 @@
 #include <vector>
 
 namespace {
+#ifndef OFXGGML_AUDIO_EXAMPLE_LOG_MODULE
+#define OFXGGML_AUDIO_EXAMPLE_LOG_MODULE "ofxGgmlAudioTranscribeExample"
+#endif
+#ifndef OFXGGML_AUDIO_EXAMPLE_WINDOW_TITLE
+#define OFXGGML_AUDIO_EXAMPLE_WINDOW_TITLE "ofxGgmlAudio transcribe example"
+#endif
+#ifndef OFXGGML_AUDIO_EXAMPLE_PANEL_TITLE
+#define OFXGGML_AUDIO_EXAMPLE_PANEL_TITLE "ofxGgmlAudio Transcribe Example"
+#endif
+	constexpr const char * LogModule = OFXGGML_AUDIO_EXAMPLE_LOG_MODULE;
+	constexpr const char * WindowTitle = OFXGGML_AUDIO_EXAMPLE_WINDOW_TITLE;
+	constexpr const char * PanelTitle = OFXGGML_AUDIO_EXAMPLE_PANEL_TITLE;
+
 	std::string envValue(const char * name) {
 		const char * value = std::getenv(name);
 		return value ? std::string(value) : std::string();
@@ -95,18 +108,18 @@ namespace {
 			segments,
 			&subtitleError);
 		if (wroteSrt && wroteVtt) {
-			ofLogNotice("ofxGgmlAudioTranscribeExample")
+			ofLogNotice(LogModule)
 				<< "wrote subtitles: " << srtPath.string() << " and " << vttPath.string();
 			return "Transcription complete; subtitles written next to the audio file";
 		}
 
-		ofLogWarning("ofxGgmlAudioTranscribeExample") << subtitleError;
+		ofLogWarning(LogModule) << subtitleError;
 		return "Transcription complete; subtitle export failed: " + subtitleError;
 	}
 }
 
 void ofApp::setup() {
-	ofSetWindowTitle("ofxGgmlAudio transcribe example");
+	ofSetWindowTitle(WindowTitle);
 	gui.setup();
 
 	const auto modelFromEnv = trimText(envValue("OFXGGML_AUDIO_MODEL"));
@@ -134,7 +147,7 @@ void ofApp::setup() {
 	detail = backend.isAvailable()
 		? "whisper.cpp native backend is available"
 		: "native backend disabled; run scripts/build-whisper.* and compile with OFXGGMLAUDIO_WITH_WHISPER";
-	ofLogNotice("ofxGgmlAudioTranscribeExample") << detail;
+	ofLogNotice(LogModule) << detail;
 }
 
 void ofApp::keyPressed(int key) {
@@ -168,7 +181,7 @@ void ofApp::draw() {
 
 	ImGui::SetNextWindowPos(ImVec2(16.0f, 16.0f), ImGuiCond_Once);
 	ImGui::SetNextWindowSize(fitWindowSize(920.0f, 620.0f), ImGuiCond_Once);
-	ImGui::Begin("ofxGgmlAudio Transcribe Example");
+	ImGui::Begin(PanelTitle);
 
 	const bool canEdit = !isRunning;
 	if (!canEdit) {
@@ -252,11 +265,11 @@ void ofApp::startTranscription() {
 	}
 	cancelRequested.store(false);
 	running.store(true);
-	ofLogNotice("ofxGgmlAudioTranscribeExample")
+	ofLogNotice(LogModule)
 		<< "model: " << settings.modelPath;
-	ofLogNotice("ofxGgmlAudioTranscribeExample")
+	ofLogNotice(LogModule)
 		<< "audio: " << request.audioPath;
-	ofLogNotice("ofxGgmlAudioTranscribeExample")
+	ofLogNotice(LogModule)
 		<< "mode: " << (chunkedMode ? "chunked" : "file");
 
 	worker = std::thread(&ofApp::runWorker, this);
@@ -265,7 +278,7 @@ void ofApp::startTranscription() {
 void ofApp::runWorker() {
 	auto setupResult = backend.setup(settings);
 	if (!setupResult) {
-		ofLogWarning("ofxGgmlAudioTranscribeExample") << setupResult.error;
+		ofLogWarning(LogModule) << setupResult.error;
 		setStatus("setup failed", setupResult.error);
 		return;
 	}
@@ -276,12 +289,12 @@ void ofApp::runWorker() {
 			setStatus("cancelled", "Cancelled before transcript segments were produced");
 			return;
 		}
-		ofLogWarning("ofxGgmlAudioTranscribeExample") << transcribeResult.error;
+		ofLogWarning(LogModule) << transcribeResult.error;
 		setStatus("transcription failed", transcribeResult.error);
 		return;
 	}
 
-	ofLogNotice("ofxGgmlAudioTranscribeExample") << transcribeResult.text;
+	ofLogNotice(LogModule) << transcribeResult.text;
 	std::string nextDetail = writeSubtitleFiles(request.audioPath, transcribeResult.segments);
 	const bool wasCancelled = cancelRequested.load();
 	if (wasCancelled) {
@@ -366,7 +379,7 @@ ofxGgmlAudioResult ofApp::runChunkedTranscription() {
 				", rolling segments: " + ofToString(rolling.size()) +
 				", added segments: " + ofToString(addedSegments);
 		}
-		ofLogNotice("ofxGgmlAudioTranscribeExample")
+		ofLogNotice(LogModule)
 			<< "chunk " << chunkCount << ": " << chunkResult.text;
 	}
 

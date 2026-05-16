@@ -1,4 +1,6 @@
 param(
+	[ValidateSet("transcribe", "whisper")]
+	[string]$Example = "transcribe",
 	[string]$Configuration = "Release",
 	[string]$Platform = "x64",
 	[switch]$Clean,
@@ -464,7 +466,8 @@ function Repair-VisualStudioProjectFile {
 $scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $addonRoot = Resolve-Path (Join-Path $scriptRoot "..")
 $ofRoot = Split-Path -Parent (Split-Path -Parent $addonRoot)
-$exampleName = "ofxGgmlAudioTranscribeExample"
+$exampleName = if ($Example -eq "whisper") { "ofxGgmlAudioWhisperExample" } else { "ofxGgmlAudioTranscribeExample" }
+$exampleLabel = if ($Example -eq "whisper") { "Whisper" } else { "Transcribe" }
 $exampleRoot = Join-Path $addonRoot $exampleName
 $projectPath = Join-Path $exampleRoot "$exampleName.vcxproj"
 $addonsRoot = Split-Path -Parent $addonRoot
@@ -478,7 +481,7 @@ if (!(Test-Path -LiteralPath $exampleRoot -PathType Container)) {
 Normalize-WindowsPathEnvironment
 
 if ($DryRun) {
-	Write-Step "Transcribe example build plan"
+	Write-Step "$exampleLabel example build plan"
 	Write-Host "  example: $exampleRoot"
 	Write-Host "  project: $projectPath"
 	Write-Host "  configuration: $Configuration"
