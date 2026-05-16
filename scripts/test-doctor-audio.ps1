@@ -51,6 +51,8 @@ Assert-Contains $output "ofxGgmlCore sibling" "doctor report"
 Assert-Contains $output "Whisper runtime" "doctor report"
 Assert-Contains $output "Whisper model" "doctor report"
 Assert-Contains $output "WAV input" "doctor report"
+Assert-Contains $output "Runtime notes" "doctor report"
+Assert-Contains $output "Threads controls CPU worker threads" "doctor report"
 
 if ($exitCode -eq 0) {
 	Assert-Contains $output "Ready. Run:" "doctor ready report"

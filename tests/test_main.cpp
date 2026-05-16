@@ -426,6 +426,15 @@ int main() {
 		std::cerr << "whisper backend reported loaded before setup\n";
 		return 1;
 	}
+	const auto initialRuntimeInfo = backend.getRuntimeInfo();
+	if (initialRuntimeInfo.compiled != backend.isAvailable() ||
+		initialRuntimeInfo.loaded ||
+		initialRuntimeInfo.configuredThreads != 0 ||
+		initialRuntimeInfo.effectiveThreads <= 0 ||
+		initialRuntimeInfo.acceleration.empty()) {
+		std::cerr << "unexpected initial whisper runtime info\n";
+		return 1;
+	}
 	ofxGgmlAudioWhisperSettings settings;
 	settings.modelPath = " \t ";
 	if (settings.hasModelPath()) {

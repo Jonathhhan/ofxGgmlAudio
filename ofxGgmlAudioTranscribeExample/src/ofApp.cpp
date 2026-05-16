@@ -58,6 +58,10 @@ namespace {
 		return lowered == "0" || lowered == "false" || lowered == "off" || lowered == "no";
 	}
 
+	const char * yesNo(bool value) {
+		return value ? "yes" : "no";
+	}
+
 	std::string normalizePath(const std::filesystem::path & path) {
 		return path.lexically_normal().string();
 	}
@@ -144,6 +148,7 @@ void ofApp::setup() {
 	}
 
 	status = "idle";
+	runtimeInfo = backend.getRuntimeInfo();
 	detail = backend.isAvailable()
 		? "whisper.cpp native backend is available"
 		: "native backend disabled; run scripts/build-whisper.* and compile with OFXGGMLAUDIO_WITH_WHISPER";
@@ -169,12 +174,14 @@ void ofApp::draw() {
 	std::string detailSnapshot;
 	std::string outputSnapshot;
 	std::string rollingSummarySnapshot;
+	ofxGgmlAudioWhisperRuntimeInfo runtimeInfoSnapshot;
 	{
 		std::lock_guard<std::mutex> lock(stateMutex);
 		statusSnapshot = status;
 		detailSnapshot = detail;
 		outputSnapshot = output;
 		rollingSummarySnapshot = rollingSummary;
+		runtimeInfoSnapshot = runtimeInfo;
 	}
 
 	gui.begin();
@@ -202,7 +209,7 @@ void ofApp::draw() {
 	}
 	ImGui::InputText("Audio", audioPathBuffer.data(), audioPathBuffer.size());
 	ImGui::InputText("Language", languageBuffer.data(), languageBuffer.size());
-	ImGui::SliderInt("Threads", &threads, 0, 32);
+	ImGui::SliderInt("CPU threads", &threads, 0, 32);
 	ImGui::Checkbox("Translate", &translate);
 	ImGui::SameLine();
 	ImGui::Checkbox("Timestamps", &timestamps);
@@ -230,6 +237,25 @@ void ofApp::draw() {
 	}
 	ImGui::SameLine();
 	ImGui::TextUnformatted(isRunning ? "running" : statusSnapshot.c_str());
+
+	ImGui::SeparatorText("Runtime");
+	ImGui::TextWrapped(
+		"Whisper: %s | loaded: %s | acceleration: %s",
+		runtimeInfoSnapshot.compiled ? "compiled" : "not compiled",
+		yesNo(runtimeInfoSnapshot.loaded),
+		runtimeInfoSnapshot.acceleration.c_str());
+	ImGui::TextWrapped(
+		"CPU threads: %d effective (%s) | GPU requested: %s | GPU build support: %s",
+		runtimeInfoSnapshot.effectiveThreads,
+		runtimeInfoSnapshot.configuredThreads > 0 ? "manual" : "auto",
+		yesNo(runtimeInfoSnapshot.gpuRequested),
+		yesNo(runtimeInfoSnapshot.gpuAvailable));
+	if (!runtimeInfoSnapshot.modelPath.empty()) {
+		ImGui::TextWrapped("Loaded model: %s", runtimeInfoSnapshot.modelPath.c_str());
+	}
+	if (!runtimeInfoSnapshot.systemInfo.empty()) {
+		ImGui::TextWrapped("Build: %s", runtimeInfoSnapshot.systemInfo.c_str());
+	}
 
 	ImGui::SeparatorText("Status");
 	ImGui::TextWrapped("%s", detailSnapshot.c_str());
@@ -290,10 +316,24 @@ void ofApp::startTranscription() {
 void ofApp::runWorker() {
 	auto setupResult = backend.setup(settings);
 	if (!setupResult) {
+		{
+			std::lock_guard<std::mutex> lock(stateMutex);
+			runtimeInfo = backend.getRuntimeInfo();
+		}
 		ofLogWarning(LogModule) << setupResult.error;
 		setStatus("setup failed", setupResult.error);
 		return;
 	}
+	const auto loadedRuntimeInfo = backend.getRuntimeInfo();
+	{
+		std::lock_guard<std::mutex> lock(stateMutex);
+		runtimeInfo = loadedRuntimeInfo;
+	}
+	ofLogNotice(LogModule)
+		<< "runtime: " << loadedRuntimeInfo.acceleration
+		<< ", effective CPU threads: " << loadedRuntimeInfo.effectiveThreads
+		<< ", GPU requested: " << yesNo(loadedRuntimeInfo.gpuRequested)
+		<< ", GPU build support: " << yesNo(loadedRuntimeInfo.gpuAvailable);
 
 	auto transcribeResult = chunkedMode ? runChunkedTranscription() : runFileTranscription();
 	if (!transcribeResult) {

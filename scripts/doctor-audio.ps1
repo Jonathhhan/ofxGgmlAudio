@@ -70,6 +70,35 @@ function Test-AllFiles {
 	return $true
 }
 
+function Get-CoreGgmlAccelerators {
+	param([string]$CoreRoot)
+
+	$libRoot = Join-Path $CoreRoot "libs\ggml\lib"
+	$candidates = if (Test-WindowsHost) {
+		@(
+			@{ Name = "CUDA"; File = "ggml-cuda.lib" },
+			@{ Name = "Vulkan"; File = "ggml-vulkan.lib" },
+			@{ Name = "OpenCL"; File = "ggml-opencl.lib" },
+			@{ Name = "Metal"; File = "ggml-metal.lib" }
+		)
+	} else {
+		@(
+			@{ Name = "CUDA"; File = "libggml-cuda.a" },
+			@{ Name = "Vulkan"; File = "libggml-vulkan.a" },
+			@{ Name = "OpenCL"; File = "libggml-opencl.a" },
+			@{ Name = "Metal"; File = "libggml-metal.a" }
+		)
+	}
+
+	$accelerators = @()
+	foreach ($candidate in $candidates) {
+		if (Test-Path -LiteralPath (Join-Path $libRoot $candidate.File) -PathType Leaf) {
+			$accelerators += $candidate.Name
+		}
+	}
+	return $accelerators
+}
+
 function Add-Check {
 	param(
 		[System.Collections.Generic.List[object]]$Checks,
@@ -153,6 +182,14 @@ foreach ($check in $checks) {
 		Write-Host ("     fix: {0}" -f $check.Fix)
 	}
 }
+
+$accelerators = @(Get-CoreGgmlAccelerators -CoreRoot $coreRoot)
+$acceleratorText = if ($accelerators.Count -gt 0) { $accelerators -join ", " } else { "none detected" }
+Write-Host ""
+Write-Host "Runtime notes"
+Write-Host "  Whisper example Threads controls CPU worker threads only."
+Write-Host "  Core ggml accelerator candidates: $acceleratorText"
+Write-Host "  Actual Whisper GPU use depends on how whisper.cpp was built and is reported in the example Runtime panel."
 
 $missing = @($checks | Where-Object { !$_.Ok })
 Write-Host ""

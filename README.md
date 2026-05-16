@@ -136,6 +136,12 @@ timestamped segments are available, the shared example UI writes `.srt` and
 openFrameworks projectGenerator using addons `ofxGgmlAudio`, `ofxGgmlCore`, and
 `ofxImGui`.
 
+The example Runtime panel reports whether Whisper is compiled and loaded, the
+CPU/GPU acceleration flags reported by whisper.cpp, the loaded model path, and
+the effective CPU worker thread count. The threads control is not a CPU-only
+mode switch; it only controls CPU work scheduling while GPU use comes from the
+compiled Whisper/ggml runtime.
+
 For the full fresh-checkout path, see [docs/QUICKSTART.md](docs/QUICKSTART.md).
 For audio-lane planning and future backend boundaries, see
 [docs/AUDIO_WORKFLOWS.md](docs/AUDIO_WORKFLOWS.md).

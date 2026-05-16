@@ -3,6 +3,7 @@
 #include "ofxGgmlAudioUtils.h"
 
 #include <algorithm>
+#include <cctype>
 #include <sstream>
 #include <thread>
 #include <vector>
@@ -40,6 +41,49 @@ namespace {
 			return false;
 		}
 		return ofxGgmlAudioUtils::resampleMono(monoSamples, request.format.sampleRate, 16000, samples, &error);
+	}
+
+	std::string upperText(std::string value) {
+		std::transform(value.begin(), value.end(), value.begin(), [](unsigned char c) {
+			return static_cast<char>(std::toupper(c));
+		});
+		return value;
+	}
+
+	bool systemFlagEnabled(const std::string& systemInfo, const std::string& name) {
+		const auto text = upperText(systemInfo);
+		const auto flag = upperText(name);
+		return text.find(flag + " = 1") != std::string::npos ||
+			text.find(flag + "=1") != std::string::npos ||
+			text.find(flag + " : 1") != std::string::npos ||
+			text.find(flag + ":1") != std::string::npos;
+	}
+
+	std::string describeAcceleration(const std::string& systemInfo) {
+		std::vector<std::string> enabled;
+		for (const auto& name : { "CUDA", "METAL", "VULKAN", "OPENCL", "COREML", "OPENVINO" }) {
+			if (systemFlagEnabled(systemInfo, name)) {
+				enabled.push_back(name);
+			}
+		}
+		if (enabled.empty()) {
+			return "CPU";
+		}
+		std::ostringstream stream;
+		stream << "CPU";
+		for (const auto& name : enabled) {
+			stream << " + " << name;
+		}
+		return stream.str();
+	}
+
+	bool hasGpuAcceleration(const std::string& systemInfo) {
+		for (const auto& name : { "CUDA", "METAL", "VULKAN", "OPENCL", "COREML", "OPENVINO" }) {
+			if (systemFlagEnabled(systemInfo, name)) {
+				return true;
+			}
+		}
+		return false;
 	}
 }
 
@@ -97,6 +141,30 @@ std::string ofxGgmlAudioWhisperBackend::getBackendName() const {
 
 ofxGgmlAudioWhisperSettings ofxGgmlAudioWhisperBackend::getSettings() const {
 	return impl ? impl->settings : ofxGgmlAudioWhisperSettings{};
+}
+
+ofxGgmlAudioWhisperRuntimeInfo ofxGgmlAudioWhisperBackend::getRuntimeInfo() const {
+	ofxGgmlAudioWhisperRuntimeInfo info;
+	info.compiled = isAvailable();
+	info.loaded = isLoaded();
+	if (!impl) {
+		return info;
+	}
+	info.configuredThreads = impl->settings.threads;
+	const auto hardwareThreads = static_cast<int>(std::thread::hardware_concurrency());
+	info.effectiveThreads = impl->settings.threads > 0 ? impl->settings.threads : std::max(1, hardwareThreads);
+	info.modelPath = impl->settings.modelPath;
+#if OFXGGMLAUDIO_HAS_WHISPER
+	whisper_context_params params = whisper_context_default_params();
+	info.gpuRequested = params.use_gpu;
+	const char* systemInfo = whisper_print_system_info();
+	info.systemInfo = systemInfo ? systemInfo : "";
+	info.gpuAvailable = hasGpuAcceleration(info.systemInfo);
+	info.acceleration = describeAcceleration(info.systemInfo);
+#else
+	info.acceleration = "unavailable";
+#endif
+	return info;
 }
 
 ofxGgmlAudioResult ofxGgmlAudioWhisperBackend::setup(const ofxGgmlAudioWhisperSettings& settings) {
