@@ -9,7 +9,8 @@ param(
 	[switch]$WithWhisper,
 	[switch]$DryRun,
 	[string]$Configuration = "Release",
-	[string]$Platform = "x64"
+	[string]$Platform = "x64",
+	[int]$Jobs = 1
 )
 
 $scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -25,5 +26,6 @@ $scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 	-WithWhisper:$WithWhisper `
 	-DryRun:$DryRun `
 	-Configuration $Configuration `
-	-Platform $Platform
+	-Platform $Platform `
+	-Jobs $Jobs
 exit $LASTEXITCODE
