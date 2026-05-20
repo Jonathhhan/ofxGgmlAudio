@@ -12,6 +12,13 @@
     "audio inference",
     "denoising"
   ],
+  "features": [
+    "Whisper transcription",
+    "chunked transcription",
+    "audio feature helpers",
+    "asset and setup dry-run workflows",
+    "model-backed runtime smoke evidence"
+  ],
   "platforms": [
     "windows",
     "macos",
