@@ -61,6 +61,44 @@ function Resolve-SmokePath {
 	return [System.IO.Path]::GetFullPath($Path)
 }
 
+function Test-GeneratedBuildDir {
+	param([string]$Path)
+	if ([string]::IsNullOrWhiteSpace($Path)) {
+		return $false
+	}
+	$fullPath = [System.IO.Path]::GetFullPath($Path)
+	$tempRoot = [System.IO.Path]::GetFullPath([System.IO.Path]::GetTempPath()).TrimEnd("\", "/") + [System.IO.Path]::DirectorySeparatorChar
+	$addonBuildRoot = [System.IO.Path]::GetFullPath((Join-Path $addonRoot.Path "build")).TrimEnd("\", "/") + [System.IO.Path]::DirectorySeparatorChar
+	return $fullPath.StartsWith($tempRoot, [System.StringComparison]::OrdinalIgnoreCase) -or
+		$fullPath.StartsWith($addonBuildRoot, [System.StringComparison]::OrdinalIgnoreCase)
+}
+
+function Get-CachedCxxCompiler {
+	param([string]$BuildDir)
+	$cachePath = Join-Path $BuildDir "CMakeCache.txt"
+	if (!(Test-Path -LiteralPath $cachePath -PathType Leaf)) {
+		return ""
+	}
+	foreach ($line in (Get-Content -LiteralPath $cachePath -ErrorAction SilentlyContinue)) {
+		if ($line -match "^CMAKE_CXX_COMPILER:FILEPATH=(.+)$") {
+			return $Matches[1]
+		}
+	}
+	return ""
+}
+
+function Clear-StaleCMakeBuildDir {
+	param([string]$BuildDir)
+	if (!(Test-GeneratedBuildDir -Path $BuildDir)) {
+		return
+	}
+	$compiler = Get-CachedCxxCompiler -BuildDir $BuildDir
+	if (![string]::IsNullOrWhiteSpace($compiler) -and !(Test-Path -LiteralPath $compiler -PathType Leaf)) {
+		Write-Step "Cleaning stale CMake cache in $BuildDir"
+		Remove-Item -LiteralPath $BuildDir -Recurse -Force
+	}
+}
+
 function Invoke-SmokeScript {
 	param(
 		[string]$Name,
@@ -117,6 +155,10 @@ $resolvedBuildDir = [System.IO.Path]::GetFullPath($BuildDir)
 $simpleBuildDir = Join-Path $resolvedBuildDir "simple"
 $chunkedBuildDir = Join-Path $resolvedBuildDir "chunked"
 $modes = if ($Mode -eq "all") { @("simple", "chunked") } else { @($Mode) }
+
+foreach ($buildDirCandidate in @($simpleBuildDir, $chunkedBuildDir)) {
+	Clear-StaleCMakeBuildDir -BuildDir $buildDirCandidate
+}
 
 $plan = @{
 	Name = "ofxGgmlAudio runtime smoke"

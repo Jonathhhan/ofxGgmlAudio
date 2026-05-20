@@ -67,12 +67,51 @@ function Get-VisualStudioDevCmd {
 	return ""
 }
 
+function Test-GeneratedBuildDir {
+	param([string]$Path)
+	if ([string]::IsNullOrWhiteSpace($Path)) {
+		return $false
+	}
+	$fullPath = [System.IO.Path]::GetFullPath($Path)
+	$tempRoot = [System.IO.Path]::GetFullPath([System.IO.Path]::GetTempPath()).TrimEnd("\", "/") + [System.IO.Path]::DirectorySeparatorChar
+	$addonBuildRoot = [System.IO.Path]::GetFullPath((Join-Path $addonRoot.Path "build")).TrimEnd("\", "/") + [System.IO.Path]::DirectorySeparatorChar
+	return $fullPath.StartsWith($tempRoot, [System.StringComparison]::OrdinalIgnoreCase) -or
+		$fullPath.StartsWith($addonBuildRoot, [System.StringComparison]::OrdinalIgnoreCase)
+}
+
+function Get-CachedCxxCompiler {
+	param([string]$BuildDir)
+	$cachePath = Join-Path $BuildDir "CMakeCache.txt"
+	if (!(Test-Path -LiteralPath $cachePath -PathType Leaf)) {
+		return ""
+	}
+	foreach ($line in (Get-Content -LiteralPath $cachePath -ErrorAction SilentlyContinue)) {
+		if ($line -match "^CMAKE_CXX_COMPILER:FILEPATH=(.+)$") {
+			return $Matches[1]
+		}
+	}
+	return ""
+}
+
+function Clear-StaleCMakeBuildDir {
+	param([string]$BuildDir)
+	if (!(Test-GeneratedBuildDir -Path $BuildDir)) {
+		return
+	}
+	$compiler = Get-CachedCxxCompiler -BuildDir $BuildDir
+	if (![string]::IsNullOrWhiteSpace($compiler) -and !(Test-Path -LiteralPath $compiler -PathType Leaf)) {
+		Write-Step "Cleaning stale CMake cache in $BuildDir"
+		Remove-Item -LiteralPath $BuildDir -Recurse -Force
+	}
+}
+
 $scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $addonRoot = Resolve-Path (Join-Path $scriptRoot "..")
 $testsDir = Join-Path $addonRoot "tests"
 if ([string]::IsNullOrWhiteSpace($BuildDir)) {
 	$BuildDir = Join-Path ([System.IO.Path]::GetTempPath()) "ofxGgmlAudio-tests"
 }
+Clear-StaleCMakeBuildDir -BuildDir $BuildDir
 
 if ($Clean -and (Test-Path -LiteralPath $BuildDir)) {
 	Write-Step "Cleaning $BuildDir"
