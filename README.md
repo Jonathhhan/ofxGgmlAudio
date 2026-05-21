@@ -11,6 +11,14 @@ Family map: https://jonathhhan.github.io/ofxGgmlCore/
 
 Current addon API version: `1.0.1`.
 
+## Features
+
+- Whisper transcription
+- chunked transcription
+- audio feature helpers
+- asset and setup dry-run workflows
+- model-backed runtime smoke evidence
+
 ## First Milestone
 
 - define small request/result types
