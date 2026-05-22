@@ -113,6 +113,106 @@ function Convert-ToCMakePath {
 	return ([System.IO.Path]::GetFullPath($Path) -replace "\\", "/")
 }
 
+function Read-CmakeCacheValue {
+	param(
+		[string]$BuildDir,
+		[string]$Name
+	)
+	$cacheFile = Join-Path $BuildDir "CMakeCache.txt"
+	if (!(Test-Path -LiteralPath $cacheFile -PathType Leaf)) {
+		return ""
+	}
+	$pattern = "^{0}:[^=]*=(.*)$" -f [regex]::Escape($Name)
+	foreach ($line in Get-Content -LiteralPath $cacheFile) {
+		$match = [regex]::Match($line, $pattern)
+		if ($match.Success) {
+			return $match.Groups[1].Value.Trim()
+		}
+	}
+	return ""
+}
+
+function Test-CmakeCacheBoolOn {
+	param(
+		[string]$BuildDir,
+		[string]$Name
+	)
+	$value = Read-CmakeCacheValue -BuildDir $BuildDir -Name $Name
+	return $value -match "^(ON|TRUE|1|YES)$"
+}
+
+function Get-InstalledFiles {
+	param(
+		[string]$Directory,
+		[string[]]$Patterns
+	)
+	if (!(Test-Path -LiteralPath $Directory -PathType Container)) {
+		return @()
+	}
+	$files = @()
+	foreach ($pattern in $Patterns) {
+		$files += @(Get-ChildItem -LiteralPath $Directory -File -Filter $pattern -ErrorAction SilentlyContinue)
+	}
+	return @($files | Sort-Object -Property Name -Unique)
+}
+
+function Join-FileNames {
+	param([object[]]$Files)
+	if ($Files.Count -eq 0) {
+		return "none"
+	}
+	return (($Files | ForEach-Object { $_.Name }) -join ", ")
+}
+
+function Clear-InstalledWhisperArtifacts {
+	param([string]$InstallDir)
+	$targets = @(
+		@{ Dir = Join-Path $InstallDir "bin"; Patterns = @("whisper*.dll", "whisper*.so", "libwhisper*.so", "libwhisper*.dylib") },
+		@{ Dir = Join-Path $InstallDir "lib"; Patterns = @("whisper*.lib", "libwhisper*.a", "libwhisper*.dylib") },
+		@{ Dir = Join-Path $InstallDir "include"; Patterns = @("whisper.h") }
+	)
+	foreach ($target in $targets) {
+		foreach ($pattern in $target.Patterns) {
+			foreach ($file in @(Get-InstalledFiles -Directory $target.Dir -Patterns @($pattern))) {
+				try {
+					Remove-Item -LiteralPath $file.FullName -Force -ErrorAction Stop
+				} catch {
+					throw "Could not replace installed Whisper artifact '$($file.FullName)'. Stop any running Whisper example/smoke process and retry. $($_.Exception.Message)"
+				}
+			}
+		}
+	}
+}
+
+function Write-WhisperBackendReport {
+	param(
+		[string]$BuildDir,
+		[string]$InstallDir,
+		[string]$CorePath,
+		[bool]$BundledGgml
+	)
+	$whisperDlls = Get-InstalledFiles -Directory (Join-Path $InstallDir "bin") -Patterns @("whisper*.dll", "whisper*.so", "libwhisper*.so", "libwhisper*.dylib")
+	$coreCuda = Test-CoreGgmlLibraryAvailable -CorePath $CorePath -WindowsLibraryName "ggml-cuda.lib" -UnixLibraryName "libggml-cuda.a"
+	$coreVulkan = Test-CoreGgmlLibraryAvailable -CorePath $CorePath -WindowsLibraryName "ggml-vulkan.lib" -UnixLibraryName "libggml-vulkan.a"
+	$coreMetal = Test-CoreGgmlLibraryAvailable -CorePath $CorePath -WindowsLibraryName "ggml-metal.lib" -UnixLibraryName "libggml-metal.a"
+	$coreOpenCL = Test-CoreGgmlLibraryAvailable -CorePath $CorePath -WindowsLibraryName "ggml-opencl.lib" -UnixLibraryName "libggml-opencl.a"
+
+	Write-Step "Whisper backend summary"
+	Write-Host "  ggml: $(if ($BundledGgml) { 'Bundled whisper.cpp ggml' } else { 'ofxGgmlCore ggml' })"
+	Write-Host ("  CMakeCache: WHISPER_USE_SYSTEM_GGML={0} GGML_CUDA={1} GGML_VULKAN={2} GGML_METAL={3} GGML_OPENCL={4}" -f `
+		(Convert-ToOnOff (Test-CmakeCacheBoolOn -BuildDir $BuildDir -Name "WHISPER_USE_SYSTEM_GGML")),
+		(Convert-ToOnOff (Test-CmakeCacheBoolOn -BuildDir $BuildDir -Name "GGML_CUDA")),
+		(Convert-ToOnOff (Test-CmakeCacheBoolOn -BuildDir $BuildDir -Name "GGML_VULKAN")),
+		(Convert-ToOnOff (Test-CmakeCacheBoolOn -BuildDir $BuildDir -Name "GGML_METAL")),
+		(Convert-ToOnOff (Test-CmakeCacheBoolOn -BuildDir $BuildDir -Name "GGML_OPENCL")))
+	Write-Host ("  Core ggml accelerator libs: CUDA={0} Vulkan={1} Metal={2} OpenCL={3}" -f `
+		(Convert-ToOnOff $coreCuda),
+		(Convert-ToOnOff $coreVulkan),
+		(Convert-ToOnOff $coreMetal),
+		(Convert-ToOnOff $coreOpenCL))
+	Write-Host "  installed Whisper runtime artifacts: $(Join-FileNames $whisperDlls)"
+}
+
 function Add-RequiredLibraryPath {
 	param(
 		[System.Collections.Generic.List[string]]$Libraries,
@@ -306,6 +406,9 @@ if (![string]::IsNullOrWhiteSpace($resolvedGenerator)) {
 	$cmakeConfigure += @("-G", $resolvedGenerator)
 	if (Test-WindowsHost -and $resolvedGenerator -like "Visual Studio*") {
 		$cmakeConfigure += @("-A", "x64")
+		if ($enableCuda -and $env:CUDA_PATH) {
+			$cmakeConfigure += @("-T", "host=x64,cuda=$env:CUDA_PATH")
+		}
 	}
 }
 $cmakeConfigure += @(
@@ -396,8 +499,15 @@ Invoke-Checked "cmake build whisper.cpp" "cmake" @(
 	"--parallel", [string]$Jobs)
 
 Write-Step "Installing whisper.cpp runtime"
+Clear-InstalledWhisperArtifacts -InstallDir $InstallDir
 Invoke-Checked "cmake install whisper.cpp" "cmake" @(
 	"--install", $BuildDir,
 	"--config", $Configuration)
+
+Write-WhisperBackendReport `
+	-BuildDir $BuildDir `
+	-InstallDir $InstallDir `
+	-CorePath $OfxGgmlCorePath `
+	-BundledGgml ([bool]$BundledGgml)
 
 Write-Step "Done. whisper.cpp runtime installed under $InstallDir"

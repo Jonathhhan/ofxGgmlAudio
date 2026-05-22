@@ -58,6 +58,14 @@ Assert-Contains $cpuOutput "mode: CpuOnly" "CPU-only dry-run"
 Assert-Contains $cpuOutput "CUDA=OFF" "CPU-only dry-run"
 Assert-Contains $cpuOutput "Vulkan=OFF" "CPU-only dry-run"
 
+Write-Step "whisper.cpp CUDA dry-run"
+$cudaOutput = & $script -DryRun -Cuda 2>&1 6>&1 | Out-String
+Assert-Contains $cudaOutput "mode: Explicit" "CUDA dry-run"
+Assert-Contains $cudaOutput "CUDA=ON" "CUDA dry-run"
+Assert-Contains $cudaOutput "-DGGML_CUDA=ON" "CUDA dry-run"
+Assert-Contains $cudaOutput "-T host=x64,cuda=" "CUDA dry-run"
+Assert-Contains $cudaOutput "ggml: ofxGgmlCore" "CUDA dry-run"
+
 Write-Step "whisper.cpp bundled ggml dry-run"
 $bundledOutput = & $script -DryRun -CpuOnly -BundledGgml 2>&1 6>&1 | Out-String
 Assert-Contains $bundledOutput "ggml: Bundled" "bundled ggml dry-run"

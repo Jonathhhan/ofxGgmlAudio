@@ -144,6 +144,12 @@ timestamped segments are available, the shared example UI writes `.srt` and
 openFrameworks projectGenerator using addons `ofxGgmlAudio`, `ofxGgmlCore`, and
 `ofxImGui`.
 
+`ofxGgmlAudioLiveMicExample` is the dedicated live microphone stream example.
+It captures mono mic input, feeds `ofxGgmlAudioStreamChunker`, and displays
+RMS/peak/zero-crossing features plus the deterministic voice-activity baseline.
+It intentionally does not claim model-backed live transcription yet; use the
+Whisper examples for model-backed file and chunked transcription evidence.
+
 The example Runtime panel reports whether Whisper is compiled and loaded, the
 CPU/GPU acceleration flags reported by whisper.cpp, the loaded model path, and
 the effective CPU worker thread count. The threads control is not a CPU-only

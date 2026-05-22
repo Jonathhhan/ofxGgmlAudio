@@ -101,6 +101,19 @@ Assert-FileContains (Join-Path $whisperExampleRoot "src\ofApp.cpp") "ofxGgmlAudi
 Assert-FileContains (Join-Path $whisperExampleRoot "README.md") "..\\scripts\\build-whisper-example.bat" "Whisper example README"
 Assert-FileContains (Join-Path $whisperExampleRoot "README.md") "../scripts/build-whisper-example.sh" "Whisper example README"
 Assert-FileContains (Join-Path $whisperExampleRoot "README.md") "OFXGGML_AUDIO_MODEL" "Whisper example README"
+
+$liveMicExampleRoot = Join-Path $addonRoot "ofxGgmlAudioLiveMicExample"
+Assert-Path $liveMicExampleRoot "root-level live mic example" -Directory
+Assert-Path (Join-Path $liveMicExampleRoot "addons.make") "live mic example addons.make"
+Assert-FileContains (Join-Path $liveMicExampleRoot "addons.make") "(?m)^ofxImGui\s*$" "live mic example addons.make"
+Assert-Path (Join-Path $liveMicExampleRoot "src\main.cpp") "live mic example main.cpp"
+Assert-Path (Join-Path $liveMicExampleRoot "src\ofApp.h") "live mic example ofApp.h"
+Assert-Path (Join-Path $liveMicExampleRoot "src\ofApp.cpp") "live mic example ofApp.cpp"
+Assert-FileContains (Join-Path $liveMicExampleRoot "src\ofApp.cpp") "ofSoundStream" "live mic example audio stream source"
+Assert-FileContains (Join-Path $liveMicExampleRoot "src\ofApp.cpp") "chunker\.setup" "live mic example chunker source"
+Assert-FileContains (Join-Path $liveMicExampleRoot "src\ofApp.cpp") "estimateVoiceActivity" "live mic example VAD source"
+Assert-FileContains (Join-Path $liveMicExampleRoot "README.md") "Live microphone stream example" "live mic example README"
+
 Assert-Path (Join-Path $addonRoot "tests\CMakeLists.txt") "test CMakeLists"
 Assert-Path (Join-Path $addonRoot "tests\test_main.cpp") "test source"
 Assert-Path (Join-Path $addonRoot "tests\test_whisper_smoke.cpp") "Whisper smoke test source"
@@ -186,14 +199,20 @@ $forbidden = @(
 	"ofxGgmlAudioWhisperExample\bin",
 	"ofxGgmlAudioWhisperExample\obj",
 	"ofxGgmlAudioWhisperExample\.vs",
+	"ofxGgmlAudioLiveMicExample\bin",
+	"ofxGgmlAudioLiveMicExample\obj",
+	"ofxGgmlAudioLiveMicExample\.vs",
 	"libs\whisper\.source",
 	"libs\whisper\build"
 )
 
 foreach ($relative in $forbidden) {
-	$path = Join-Path $addonRoot $relative
-	if (Test-Path -LiteralPath $path) {
-		throw "Generated or local-only path should not be committed here: $relative"
+	$status = @(& git -C $addonRoot status --short -- $relative 2>$null)
+	if ($LASTEXITCODE -ne 0) {
+		throw "Could not inspect git status for artifact hygiene path: $relative"
+	}
+	if ($status.Count -gt 0) {
+		throw "Generated or local-only path should not be committed here: $relative`n$($status -join "`n")"
 	}
 }
 

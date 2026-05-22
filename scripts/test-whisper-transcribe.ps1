@@ -82,6 +82,25 @@ function Assert-File {
 	}
 }
 
+function Clear-BuildDirIfCompilerCacheIsStale {
+	param([string]$BuildDir)
+	$cacheFile = Join-Path $BuildDir "CMakeCache.txt"
+	if (!(Test-Path -LiteralPath $cacheFile -PathType Leaf)) {
+		return
+	}
+	foreach ($line in Get-Content -LiteralPath $cacheFile) {
+		if ($line -notmatch "^CMAKE_CXX_COMPILER:FILEPATH=(.+)$") {
+			continue
+		}
+		$compilerPath = $Matches[1]
+		if (!(Test-Path -LiteralPath $compilerPath -PathType Leaf)) {
+			Write-Step "Cleaning stale Whisper smoke CMake cache"
+			Remove-Item -LiteralPath $BuildDir -Recurse -Force
+		}
+		return
+	}
+}
+
 $scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $addonRoot = Resolve-Path (Join-Path $scriptRoot "..")
 $addonsRoot = Split-Path -Parent $addonRoot
@@ -135,6 +154,8 @@ Assert-File $Audio "WAV input" "scripts\download-whisper-assets.bat"
 if ($Clean -and (Test-Path -LiteralPath $BuildDir)) {
 	Write-Step "Cleaning $BuildDir"
 	Remove-Item -LiteralPath $BuildDir -Recurse -Force
+} elseif (Test-WindowsHost) {
+	Clear-BuildDirIfCompilerCacheIsStale -BuildDir $BuildDir
 }
 
 if (Test-WindowsHost) {

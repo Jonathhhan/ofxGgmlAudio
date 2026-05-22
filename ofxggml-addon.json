@@ -15,6 +15,7 @@
   "features": [
     "Whisper transcription",
     "chunked transcription",
+    "live microphone stream chunking",
     "audio feature helpers",
     "asset and setup dry-run workflows",
     "model-backed runtime smoke evidence"
