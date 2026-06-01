@@ -1,5 +1,5 @@
 param(
-	[ValidateSet("transcribe", "whisper")]
+	[ValidateSet("transcribe", "whisper", "live-mic")]
 	[string]$Example = "transcribe",
 	[string]$Configuration = "Release",
 	[string]$Platform = "x64",
@@ -331,6 +331,20 @@ function Add-ListValue {
 	return $changed
 }
 
+function Remove-ListValue {
+	param(
+		[System.Xml.XmlNode]$Node,
+		[string]$Value
+	)
+	$parts = @($Node.InnerText -split ";" | Where-Object { $_ })
+	$filtered = @($parts | Where-Object { $_ -ne $Value })
+	if ($filtered.Count -eq $parts.Count) {
+		return $false
+	}
+	$Node.InnerText = $filtered -join ";"
+	return $true
+}
+
 function Add-CompilerDefinition {
 	param(
 		[xml]$Doc,
@@ -385,6 +399,87 @@ function Add-LinkerDependency {
 	return $changed
 }
 
+function Remove-LinkerValue {
+	param(
+		[xml]$Doc,
+		[System.Xml.XmlNamespaceManager]$Namespace,
+		[string]$NodeName,
+		[string]$Value
+	)
+	$changed = $false
+	$nodes = @($Doc.SelectNodes("//msb:$NodeName", $Namespace))
+	foreach ($node in $nodes) {
+		if (Remove-ListValue -Node $node -Value $Value) {
+			$changed = $true
+		}
+	}
+	return $changed
+}
+
+function Get-CoreGgmlLibraryCandidates {
+	param([string]$CoreRoot)
+	return @(
+		@{
+			Absolute = Join-Path $CoreRoot "libs\ggml\lib"
+			Relative = "..\..\ofxGgmlCore\libs\ggml\lib"
+		},
+		@{
+			Absolute = Join-Path $CoreRoot "libs\ggml\build-cuda\src\Release"
+			Relative = "..\..\ofxGgmlCore\libs\ggml\build-cuda\src\Release"
+		},
+		@{
+			Absolute = Join-Path $CoreRoot "libs\ggml\build-native\src\Release"
+			Relative = "..\..\ofxGgmlCore\libs\ggml\build-native\src\Release"
+		},
+		@{
+			Absolute = Join-Path $CoreRoot "libs\ggml\build-native\src"
+			Relative = "..\..\ofxGgmlCore\libs\ggml\build-native\src"
+		}
+	)
+}
+
+function Test-CoreGgmlLibraryDirectory {
+	param([string]$Path)
+	foreach ($fileName in @("ggml.lib", "ggml-base.lib", "ggml-cpu.lib")) {
+		if (!(Test-Path -LiteralPath (Join-Path $Path $fileName) -PathType Leaf)) {
+			return $false
+		}
+	}
+	return $true
+}
+
+function Get-CoreGgmlLibraryRelativeDirectory {
+	param([string]$CoreRoot)
+	foreach ($candidate in Get-CoreGgmlLibraryCandidates -CoreRoot $CoreRoot) {
+		if (Test-CoreGgmlLibraryDirectory -Path $candidate.Absolute) {
+			return $candidate.Relative
+		}
+	}
+	return ""
+}
+
+function Repair-GeneratedDllPostBuildEvents {
+	param(
+		[xml]$Doc,
+		[System.Xml.XmlNamespaceManager]$Namespace
+	)
+	$changed = $false
+	$commands = @($Doc.SelectNodes("//msb:PostBuildEvent/msb:Command", $Namespace))
+	foreach ($command in $commands) {
+		foreach ($platform in @("x64", "ARM64", "ARM64EC")) {
+			$source = "`$(ProjectDir)dll\$platform\*.dll"
+			if ($command.InnerText -like "*xcopy /Y /E `"$source`" `"*") {
+				$next = "if exist `"$source`" xcopy /Y /E `"$source`" `"`$(TargetDir)`""
+				if ($command.InnerText.Trim() -ne $next) {
+					$command.InnerText = $next
+					$changed = $true
+				}
+			}
+		}
+	}
+	return $changed
+}
+
 function Assert-WhisperRuntime {
 	param([string]$AudioRoot)
 	$required = @(
@@ -401,16 +496,19 @@ function Assert-WhisperRuntime {
 
 function Assert-CoreGgmlRuntime {
 	param([string]$CoreRoot)
-	$required = @(
+	$headerCandidates = @(
 		(Join-Path $CoreRoot "libs\ggml\include\ggml.h"),
-		(Join-Path $CoreRoot "libs\ggml\lib\ggml.lib"),
-		(Join-Path $CoreRoot "libs\ggml\lib\ggml-base.lib"),
-		(Join-Path $CoreRoot "libs\ggml\lib\ggml-cpu.lib")
+		(Join-Path $CoreRoot "libs\ggml\.source\include\ggml.h")
 	)
-	foreach ($path in $required) {
-		if (!(Test-Path -LiteralPath $path -PathType Leaf)) {
-			throw "ofxGgmlCore ggml runtime is incomplete. Missing: $path. Run ..\ofxGgmlCore\scripts\setup-ggml.bat first."
-		}
+	$hasHeader = $false
+	foreach ($path in $headerCandidates) {
+		$hasHeader = $hasHeader -or (Test-Path -LiteralPath $path -PathType Leaf)
+	}
+	if (!$hasHeader) {
+		throw "ofxGgmlCore ggml runtime is incomplete. Missing ggml.h. Run ..\ofxGgmlCore\scripts\setup-ggml.bat first."
+	}
+	if ([string]::IsNullOrWhiteSpace((Get-CoreGgmlLibraryRelativeDirectory -CoreRoot $CoreRoot))) {
+		throw "ofxGgmlCore ggml runtime is incomplete. Missing ggml.lib, ggml-base.lib, or ggml-cpu.lib. Run ..\ofxGgmlCore\scripts\setup-ggml.bat first."
 	}
 }
 
@@ -460,9 +558,13 @@ function Repair-VisualStudioProjectFile {
 	}
 
 	if ($Path.EndsWith(".vcxproj", [System.StringComparison]::OrdinalIgnoreCase)) {
+		if (Repair-GeneratedDllPostBuildEvents -Doc $doc -Namespace $namespace) {
+			$changed = $true
+		}
 		foreach ($includeDir in @(
 			"..\..\ofxGgmlCore\src",
 			"..\..\ofxGgmlCore\libs\ggml\include",
+			"..\..\ofxGgmlCore\libs\ggml\.source\include",
 			"..\..\ofxGgmlAudio\src",
 			"..\..\ofxGgmlAudio\libs\whisper\include",
 			"..\..\ofxImGui\src",
@@ -486,12 +588,22 @@ function Repair-VisualStudioProjectFile {
 				$changed = $true
 			}
 		}
-		if (Add-LinkerLibraryDirectory -Doc $doc -Namespace $namespace -LibraryDirectory "..\..\ofxGgmlCore\libs\ggml\lib") {
-			$changed = $true
+		$coreGgmlLibraryDirectory = Get-CoreGgmlLibraryRelativeDirectory -CoreRoot $CoreRoot
+		foreach ($candidate in Get-CoreGgmlLibraryCandidates -CoreRoot $CoreRoot) {
+			if ($candidate.Relative -ne $coreGgmlLibraryDirectory) {
+				if (Remove-LinkerValue -Doc $doc -Namespace $namespace -NodeName "AdditionalLibraryDirectories" -Value $candidate.Relative) {
+					$changed = $true
+				}
+			}
 		}
-		foreach ($dependency in @("ggml.lib", "ggml-base.lib", "ggml-cpu.lib")) {
-			if (Add-LinkerDependency -Doc $doc -Namespace $namespace -Dependency $dependency) {
+		if (![string]::IsNullOrWhiteSpace($coreGgmlLibraryDirectory)) {
+			if (Add-LinkerLibraryDirectory -Doc $doc -Namespace $namespace -LibraryDirectory $coreGgmlLibraryDirectory) {
 				$changed = $true
+			}
+			foreach ($dependency in @("ggml.lib", "ggml-base.lib", "ggml-cpu.lib")) {
+				if (Add-LinkerDependency -Doc $doc -Namespace $namespace -Dependency $dependency) {
+					$changed = $true
+				}
 			}
 		}
 	}
@@ -519,8 +631,16 @@ function Repair-VisualStudioProjectFile {
 $scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $addonRoot = Resolve-Path (Join-Path $scriptRoot "..")
 $ofRoot = Split-Path -Parent (Split-Path -Parent $addonRoot)
-$exampleName = if ($Example -eq "whisper") { "ofxGgmlAudioWhisperExample" } else { "ofxGgmlAudioTranscribeExample" }
-$exampleLabel = if ($Example -eq "whisper") { "Whisper" } else { "Transcribe" }
+$exampleName = switch ($Example) {
+	"whisper" { "ofxGgmlAudioWhisperExample" }
+	"live-mic" { "ofxGgmlAudioLiveMicExample" }
+	default { "ofxGgmlAudioTranscribeExample" }
+}
+$exampleLabel = switch ($Example) {
+	"whisper" { "Whisper" }
+	"live-mic" { "Live mic" }
+	default { "Transcribe" }
+}
 $exampleRoot = Join-Path $addonRoot $exampleName
 $projectPath = Join-Path $exampleRoot "$exampleName.vcxproj"
 $addonsRoot = Split-Path -Parent $addonRoot

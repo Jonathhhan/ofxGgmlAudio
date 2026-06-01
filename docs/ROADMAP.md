@@ -28,11 +28,11 @@
 - Connect rolling transcripts to the transcribe example GUI with chunked mode
   and between-chunk cancellation.
 - Add independent addon version metadata and release-candidate docs.
+- Add a dedicated live microphone streaming example with baseline VAD
+  diagnostics and per-example build/run/clean/quickstart scripts.
 
 ## Next Milestones
 
-- Add a dedicated live microphone streaming example once the file-based chunked
-  workflow is stable.
 - Add broader media decoding before claiming general audio-file support.
 - Add one useful openFrameworks example that runs with a user-provided Whisper
   model and audio file. Done first as `ofxGgmlAudioTranscribeExample`.

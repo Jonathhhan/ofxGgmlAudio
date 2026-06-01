@@ -13,6 +13,12 @@
   transcription, rolling transcript deduplication, and subtitle export together.
 - Added chunked rolling transcript mode to the transcribe example, including
   live chunk progress and between-chunk cancellation.
+- Added an explicit Whisper example wrapper plus live microphone diagnostics
+  with pause/resume, reset, VAD threshold controls, and RMS/VAD history plots.
+- Added per-example build, run, clean, and quickstart wrappers for transcribe,
+  Whisper, and live microphone workflows.
+- Expanded `doctor-audio` and local validation so example setup checks cover all
+  root-level examples and Core ggml local build-output layouts.
 
 ## 1.0.1 - 2026-05-12
 

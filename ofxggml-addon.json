@@ -16,9 +16,28 @@
     "Whisper transcription",
     "chunked transcription",
     "live microphone stream chunking",
+    "live microphone diagnostics",
     "audio feature helpers",
     "asset and setup dry-run workflows",
+    "example build/run/clean/quickstart workflows",
     "model-backed runtime smoke evidence"
+  ],
+  "examples": [
+    {
+      "name": "ofxGgmlAudioTranscribeExample",
+      "task": "Whisper file and chunked transcription",
+      "quickstart": "scripts/quickstart-transcribe-example"
+    },
+    {
+      "name": "ofxGgmlAudioWhisperExample",
+      "task": "Explicit Whisper transcription workflow",
+      "quickstart": "scripts/quickstart-whisper-example"
+    },
+    {
+      "name": "ofxGgmlAudioLiveMicExample",
+      "task": "Live microphone chunking and baseline VAD diagnostics",
+      "quickstart": "scripts/quickstart-live-mic-example"
+    }
   ],
   "platforms": [
     "windows",

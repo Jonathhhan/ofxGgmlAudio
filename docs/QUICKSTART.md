@@ -1,8 +1,8 @@
 # Quickstart
 
 This is the boring path for a fresh `ofxGgmlAudio` checkout: clone the addon,
-check the environment, build the optional Whisper runtime, download a tiny model
-and sample WAV, then run the transcribe example.
+check the environment, build the optional Whisper runtime when needed, download
+a tiny model and sample WAV for Whisper examples, then run an example.
 
 ## 1. Folder Layout
 
@@ -40,7 +40,8 @@ cd ofxGgmlAudio
 ## 2. Check Setup State
 
 Run the doctor first. It prints each required piece and the next likely command
-if something is missing.
+if something is missing. The report covers the Whisper runtime/assets, the
+transcribe and Whisper examples, and the lightweight live mic example.
 
 Windows:
 
@@ -73,9 +74,9 @@ Studio C++ toolchain.
 
 ## 3. One Command Quickstart
 
-This builds the optional Whisper runtime if needed, downloads the default
-`tiny.en` model and `jfk.wav` sample, builds the example with
-`OFXGGMLAUDIO_WITH_WHISPER`, and launches it. A successful run prints the
+For file transcription, this builds the optional Whisper runtime if needed,
+downloads the default `tiny.en` model and `jfk.wav` sample, builds the example
+with `OFXGGMLAUDIO_WITH_WHISPER`, and launches it. A successful run prints the
 transcript in the GUI and writes `.srt` plus `.vtt` subtitle files next to the
 input WAV when timestamped segments are available.
 
@@ -83,23 +84,34 @@ Windows:
 
 ```powershell
 scripts\quickstart-transcribe-example.bat
+scripts\quickstart-whisper-example.bat
+scripts\quickstart-live-mic-example.bat
 ```
 
 macOS/Linux:
 
 ```sh
 ./scripts/quickstart-transcribe-example.sh
+./scripts/quickstart-whisper-example.sh
+./scripts/quickstart-live-mic-example.sh
 ```
 
 To see the plan without changing files:
 
 ```powershell
 scripts\quickstart-transcribe-example.bat -DryRun
+scripts\quickstart-whisper-example.bat -DryRun
+scripts\quickstart-live-mic-example.bat -DryRun
 ```
 
 ```sh
 ./scripts/quickstart-transcribe-example.sh -DryRun
+./scripts/quickstart-whisper-example.sh -DryRun
+./scripts/quickstart-live-mic-example.sh -DryRun
 ```
+
+The live mic quickstart skips Whisper runtime and asset steps; it builds and
+launches the microphone feature/VAD diagnostic example.
 
 ## 4. Manual Path
 
@@ -111,6 +123,8 @@ Windows:
 scripts\build-whisper.bat
 scripts\download-whisper-assets.bat
 scripts\run-transcribe-example.bat -Build -WithWhisper
+scripts\run-whisper-example.bat -Build -WithWhisper
+scripts\run-live-mic-example.bat -Build
 ```
 
 macOS/Linux:
@@ -119,6 +133,8 @@ macOS/Linux:
 ./scripts/build-whisper.sh
 ./scripts/download-whisper-assets.sh
 ./scripts/run-transcribe-example.sh -Build -WithWhisper
+./scripts/run-whisper-example.sh -Build -WithWhisper
+./scripts/run-live-mic-example.sh -Build
 ```
 
 ## 5. Custom Model And Audio
@@ -193,14 +209,18 @@ macOS/Linux:
 ```
 
 To remove generated Visual Studio, Xcode, make, `bin`, and `obj` files from
-the transcribe example after local builds:
+examples after local builds:
 
 ```powershell
 scripts\clean-transcribe-example.bat
+scripts\clean-whisper-example.bat
+scripts\clean-live-mic-example.bat
 ```
 
 ```sh
 ./scripts/clean-transcribe-example.sh
+./scripts/clean-whisper-example.sh
+./scripts/clean-live-mic-example.sh
 ```
 
 ## Troubleshooting

@@ -72,12 +72,21 @@ function Test-CoreGgmlLibraryAvailable {
 	if ([string]::IsNullOrWhiteSpace($CorePath)) {
 		return $false
 	}
-	$libDir = Join-Path $CorePath "libs\ggml\lib"
-	if (!(Test-Path -LiteralPath $libDir -PathType Container)) {
-		return $false
-	}
 	$libraryName = if (Test-WindowsHost) { $WindowsLibraryName } else { $UnixLibraryName }
-	return (Test-Path -LiteralPath (Join-Path $libDir $libraryName) -PathType Leaf)
+	$candidateDirs = @(
+		(Join-Path $CorePath "libs\ggml\lib"),
+		(Join-Path $CorePath "libs\ggml\build-cuda\src\Release"),
+		(Join-Path $CorePath "libs\ggml\build-cuda\src\ggml-cuda\Release"),
+		(Join-Path $CorePath "libs\ggml\build-native\src\Release"),
+		(Join-Path $CorePath "libs\ggml\build-native\src")
+	)
+	foreach ($libDir in $candidateDirs) {
+		if ((Test-Path -LiteralPath $libDir -PathType Container) -and
+			(Test-Path -LiteralPath (Join-Path $libDir $libraryName) -PathType Leaf)) {
+			return $true
+		}
+	}
+	return $false
 }
 
 function Get-DefaultGenerator {

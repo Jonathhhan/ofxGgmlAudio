@@ -71,6 +71,19 @@ Assert-Contains $whisperBuildOutput "Whisper example build plan" "Whisper build 
 Assert-Contains $whisperBuildOutput "ofxGgmlAudioWhisperExample" "Whisper build dry-run"
 Assert-Contains $whisperBuildOutput "with whisper: OFF" "Whisper build dry-run"
 
+Write-Step "Live mic example build dry-run"
+$liveMicBuildOutput = & (Join-Path $scriptRoot "build-live-mic-example.ps1") `
+	-DryRun `
+	-Configuration $Configuration `
+	-Platform $Platform *>&1 | ForEach-Object { $_.ToString() }
+if (!$?) {
+	throw "Live mic example build dry-run failed."
+}
+Assert-Contains $liveMicBuildOutput "Live mic example build plan" "Live mic build dry-run"
+Assert-Contains $liveMicBuildOutput "ofxGgmlAudioLiveMicExample" "Live mic build dry-run"
+Assert-Contains $liveMicBuildOutput "configuration: $Configuration" "Live mic build dry-run"
+Assert-Contains $liveMicBuildOutput "platform: $Platform" "Live mic build dry-run"
+
 Write-Step "Transcribe example launch dry-run"
 $runOutput = & (Join-Path $scriptRoot "run-transcribe-example.ps1") `
 	-DryRun `
@@ -116,6 +129,19 @@ Assert-Contains $whisperRunOutput "Translate: ON" "Whisper launch dry-run"
 Assert-Contains $whisperRunOutput "Timestamps: OFF" "Whisper launch dry-run"
 Assert-Contains $whisperRunOutput "ofxGgmlAudioWhisperExample.exe" "Whisper launch dry-run"
 Assert-NotContains $whisperRunOutput "Starting ofxGgmlAudioWhisperExample" "Whisper launch dry-run"
+
+Write-Step "Live mic example launch dry-run"
+$liveMicRunOutput = & (Join-Path $scriptRoot "run-live-mic-example.ps1") `
+	-DryRun `
+	-Configuration $Configuration `
+	-Platform $Platform *>&1 | ForEach-Object { $_.ToString() }
+if (!$?) {
+	throw "Live mic example launch dry-run failed."
+}
+Assert-Contains $liveMicRunOutput "ofxGgmlAudioLiveMicExample.exe" "Live mic launch dry-run"
+Assert-Contains $liveMicRunOutput "Executable:" "Live mic launch dry-run"
+Assert-NotContains $liveMicRunOutput "Using Whisper model" "Live mic launch dry-run"
+Assert-NotContains $liveMicRunOutput "Starting ofxGgmlAudioLiveMicExample" "Live mic launch dry-run"
 
 Write-Step "Transcribe example env flag dry-run"
 $previousTranslate = $env:OFXGGML_AUDIO_TRANSLATE

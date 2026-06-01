@@ -14,16 +14,16 @@ Windows:
 
 ```powershell
 ..\scripts\doctor-audio.bat
-..\scripts\build-whisper-example.bat -WithWhisper
-..\scripts\run-whisper-example.bat
+..\scripts\quickstart-whisper-example.bat
+..\scripts\clean-whisper-example.bat -DryRun
 ```
 
 macOS/Linux:
 
 ```sh
 ../scripts/doctor-audio.sh
-../scripts/build-whisper-example.sh -WithWhisper
-../scripts/run-whisper-example.sh
+../scripts/quickstart-whisper-example.sh
+../scripts/clean-whisper-example.sh -DryRun
 ```
 
 Optional environment defaults:

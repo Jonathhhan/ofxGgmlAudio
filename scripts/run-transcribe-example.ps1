@@ -1,5 +1,5 @@
 param(
-	[ValidateSet("transcribe", "whisper")]
+	[ValidateSet("transcribe", "whisper", "live-mic")]
 	[string]$Example = "transcribe",
 	[string]$Model = $env:OFXGGML_AUDIO_MODEL,
 	[string]$Audio = $env:OFXGGML_AUDIO_FILE,
@@ -65,8 +65,16 @@ function Find-FirstFile {
 
 $scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $addonRoot = Resolve-Path (Join-Path $scriptRoot "..")
-$exampleName = if ($Example -eq "whisper") { "ofxGgmlAudioWhisperExample" } else { "ofxGgmlAudioTranscribeExample" }
-$exampleLabel = if ($Example -eq "whisper") { "Whisper" } else { "Transcribe" }
+$exampleName = switch ($Example) {
+	"whisper" { "ofxGgmlAudioWhisperExample" }
+	"live-mic" { "ofxGgmlAudioLiveMicExample" }
+	default { "ofxGgmlAudioTranscribeExample" }
+}
+$exampleLabel = switch ($Example) {
+	"whisper" { "Whisper" }
+	"live-mic" { "Live mic" }
+	default { "Transcribe" }
+}
 $exampleRoot = Join-Path $addonRoot $exampleName
 $exampleExe = Join-Path $exampleRoot "bin\$exampleName.exe"
 
@@ -92,6 +100,17 @@ if (!(Test-Path -LiteralPath $exampleExe -PathType Leaf)) {
 	} else {
 		throw "$exampleLabel example executable was not found: $exampleExe. Run scripts\run-transcribe-example.bat -Example $Example -Build first."
 	}
+}
+
+if ($Example -eq "live-mic") {
+	if ($DryRun) {
+		Write-Step "Executable: $exampleExe"
+		return
+	}
+
+	Write-Step "Starting $exampleName"
+	& $exampleExe
+	exit $LASTEXITCODE
 }
 
 $Model = Normalize-PathText $Model

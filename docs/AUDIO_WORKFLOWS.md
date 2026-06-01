@@ -61,7 +61,8 @@ Use the smallest command that proves the changed layer:
 | Whisper setup scripts | `scripts\test-whisper-setup-dry-run.bat` |
 | Asset download scripts | `scripts\test-whisper-assets-dry-run.bat` |
 | Example launch path | `scripts\test-launch-dry-run.bat` |
-| Quickstart path | `scripts\test-transcribe-quickstart-dry-run.bat` |
+| Example quickstart paths | `scripts\test-transcribe-quickstart-dry-run.bat` |
+| Doctor report | `scripts\test-doctor-audio.bat` |
 | Audio runtime smoke planning | `scripts\run-audio-runtime-smoke.bat -DryRun` |
 | Audio simple runtime transcription | `scripts\run-audio-runtime-smoke.bat -Mode simple -Json -SummaryOnly` |
 | Audio chunked runtime transcription | `scripts\run-audio-runtime-smoke.bat -Mode chunked -Json -SummaryOnly` |

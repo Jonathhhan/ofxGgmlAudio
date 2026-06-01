@@ -1,4 +1,6 @@
 param(
+	[ValidateSet("transcribe", "whisper", "live-mic")]
+	[string]$Example = "transcribe",
 	[string]$ModelName = "tiny.en",
 	[string]$ModelPath = "",
 	[string]$AudioPath = "",
@@ -71,8 +73,16 @@ $buildWhisper = Join-Path $scriptRoot "build-whisper.ps1"
 $downloadAssets = Join-Path $scriptRoot "download-whisper-assets.ps1"
 $buildExample = Join-Path $scriptRoot "build-transcribe-example.ps1"
 $runExample = Join-Path $scriptRoot "run-transcribe-example.ps1"
+$exampleLabel = switch ($Example) {
+	"whisper" { "Whisper" }
+	"live-mic" { "Live mic" }
+	default { "Transcribe" }
+}
+$usesWhisper = $Example -ne "live-mic"
 $runtimeReady = Test-WhisperRuntimeReady -Root $addonRoot
-$runtimeAction = if ($SkipRuntime) {
+$runtimeAction = if (!$usesWhisper) {
+	"SKIP"
+} elseif ($SkipRuntime) {
 	"SKIP"
 } elseif ($runtimeReady -and !$ForceRuntime) {
 	"reuse installed runtime"
@@ -88,55 +98,60 @@ if ($BundledGgml) { $runtimeArgs += "-BundledGgml" }
 
 $assetArgs = @("-Model", $ModelName)
 $exampleBuildArgs = @(
+	"-Example", $Example,
 	"-Configuration", $Configuration,
-	"-Platform", $Platform,
-	"-WithWhisper"
+	"-Platform", $Platform
 )
+if ($usesWhisper) { $exampleBuildArgs += "-WithWhisper" }
 $runArgs = @(
+	"-Example", $Example,
 	"-Configuration", $Configuration,
-	"-Platform", $Platform,
-	"-Language", $Language,
-	"-Threads", [string]$Threads
+	"-Platform", $Platform
 )
-if (![string]::IsNullOrWhiteSpace($ModelPath)) {
-	$runArgs += @("-Model", $ModelPath)
+if ($usesWhisper) {
+	$runArgs += @("-Language", $Language, "-Threads", [string]$Threads)
+	if (![string]::IsNullOrWhiteSpace($ModelPath)) {
+		$runArgs += @("-Model", $ModelPath)
+	}
+	if (![string]::IsNullOrWhiteSpace($AudioPath)) {
+		$runArgs += @("-Audio", $AudioPath)
+	}
+	if ($Translate) { $runArgs += "-Translate" }
+	if ($NoTimestamps) { $runArgs += "-NoTimestamps" }
 }
-if (![string]::IsNullOrWhiteSpace($AudioPath)) {
-	$runArgs += @("-Audio", $AudioPath)
-}
-if ($Translate) { $runArgs += "-Translate" }
-if ($NoTimestamps) { $runArgs += "-NoTimestamps" }
 
 if ($DryRun) {
-	Write-Step "Transcribe quickstart plan"
+	Write-Step "$exampleLabel quickstart plan"
 	Write-Host "  runtime: $runtimeAction"
-	Write-Host "  assets: $(if ($SkipAssets) { 'SKIP' } else { $ModelName + ' + jfk.wav' })"
+	Write-Host "  assets: $(if (!$usesWhisper -or $SkipAssets) { 'SKIP' } else { $ModelName + ' + jfk.wav' })"
 	Write-Host "  example build: ON"
 	Write-Host "  launch: $(if ($BuildOnly) { 'OFF' } else { 'ON' })"
 	Write-Host "  configuration: $Configuration"
 	Write-Host "  platform: $Platform"
-	Write-Host "  language: $Language"
-	Write-Host "  threads: $Threads"
-	Write-Host "  model path: $(if ([string]::IsNullOrWhiteSpace($ModelPath)) { '(auto)' } else { $ModelPath })"
-	Write-Host "  audio path: $(if ([string]::IsNullOrWhiteSpace($AudioPath)) { '(auto)' } else { $AudioPath })"
+	if ($usesWhisper) {
+		Write-Host "  language: $Language"
+		Write-Host "  threads: $Threads"
+		Write-Host "  model path: $(if ([string]::IsNullOrWhiteSpace($ModelPath)) { '(auto)' } else { $ModelPath })"
+		Write-Host "  audio path: $(if ([string]::IsNullOrWhiteSpace($AudioPath)) { '(auto)' } else { $AudioPath })"
+	}
 	Write-Step "Dry run complete; no files were changed"
 	return
 }
 
-if (!$SkipRuntime -and (!$runtimeReady -or $ForceRuntime)) {
+if ($usesWhisper -and !$SkipRuntime -and (!$runtimeReady -or $ForceRuntime)) {
 	Invoke-Step "Building whisper.cpp runtime" $buildWhisper $runtimeArgs
-} elseif (!$SkipRuntime) {
+} elseif ($usesWhisper -and !$SkipRuntime) {
 	Write-Step "Using installed whisper.cpp runtime"
 }
-if (!$SkipAssets) {
+if ($usesWhisper -and !$SkipAssets) {
 	Invoke-Step "Downloading Whisper quickstart assets" $downloadAssets $assetArgs
 }
 
-Invoke-Step "Building transcribe example with Whisper" $buildExample $exampleBuildArgs
+Invoke-Step "Building $($exampleLabel.ToLowerInvariant()) example$(if ($usesWhisper) { ' with Whisper' } else { '' })" $buildExample $exampleBuildArgs
 
 if ($BuildOnly) {
 	Write-Step "Build-only quickstart complete"
 	return
 }
 
-Invoke-Step "Launching transcribe example" $runExample $runArgs
+Invoke-Step "Launching $($exampleLabel.ToLowerInvariant()) example" $runExample $runArgs

@@ -38,52 +38,67 @@ function New-File {
 
 $scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $script = Join-Path $scriptRoot "clean-transcribe-example.ps1"
-$scratchRoot = Join-Path ([System.IO.Path]::GetTempPath()) "ofxGgmlAudio-clean-transcribe-test"
-$exampleRoot = Join-Path $scratchRoot "ofxGgmlAudioTranscribeExample"
+$scratchRoot = Join-Path ([System.IO.Path]::GetTempPath()) "ofxGgmlAudio-clean-examples-test"
 
 if (Test-Path -LiteralPath $scratchRoot) {
 	Remove-Item -LiteralPath $scratchRoot -Recurse -Force
 }
-New-Item -ItemType Directory -Force -Path (Join-Path $exampleRoot "src") | Out-Null
-New-File (Join-Path $exampleRoot "src\ofApp.cpp")
-New-File (Join-Path $exampleRoot "README.md")
-
-$generated = @(
-	"bin\ofxGgmlAudioTranscribeExample.exe",
-	"obj\generated.obj",
-	".vs\state.bin",
-	"dll\copied.dll",
-	"icon.rc",
-	"config.make",
-	"Makefile",
-	"ofxGgmlAudioTranscribeExample.sln",
-	"ofxGgmlAudioTranscribeExample.vcxproj",
-	"ofxGgmlAudioTranscribeExample.vcxproj.filters",
-	"ofxGgmlAudioTranscribeExample.vcxproj.user",
-	"ofxGgmlAudioTranscribeExample.xcodeproj\project.pbxproj"
-)
-
-foreach ($relative in $generated) {
-	New-File (Join-Path $exampleRoot $relative)
-}
 
 try {
-	Write-Step "Transcribe example clean dry-run regression"
-	$dryRunOutput = & $script -ExampleRoot $exampleRoot -DryRun 2>&1 6>&1 | ForEach-Object { $_.ToString() } | Out-String
-	if ($dryRunOutput -notmatch "remove: bin") {
-		throw "clean dry-run did not list generated bin output.`n$dryRunOutput"
-	}
-	Assert-Path (Join-Path $exampleRoot "bin") "dry-run generated bin"
+	foreach ($case in @(
+		@{ Example = "transcribe"; Label = "Transcribe"; Name = "ofxGgmlAudioTranscribeExample"; Wrapper = "" },
+		@{ Example = "whisper"; Label = "Whisper"; Name = "ofxGgmlAudioWhisperExample"; Wrapper = "clean-whisper-example.ps1" },
+		@{ Example = "live-mic"; Label = "Live mic"; Name = "ofxGgmlAudioLiveMicExample"; Wrapper = "clean-live-mic-example.ps1" }
+	)) {
+		$exampleRoot = Join-Path $scratchRoot $case.Name
+		New-Item -ItemType Directory -Force -Path (Join-Path $exampleRoot "src") | Out-Null
+		New-File (Join-Path $exampleRoot "src\ofApp.cpp")
+		New-File (Join-Path $exampleRoot "README.md")
 
-	Write-Step "Transcribe example clean remove regression"
-	& $script -ExampleRoot $exampleRoot
-	foreach ($relative in @("bin", "obj", ".vs", "dll", "icon.rc", "config.make", "Makefile", "ofxGgmlAudioTranscribeExample.sln", "ofxGgmlAudioTranscribeExample.vcxproj", "ofxGgmlAudioTranscribeExample.vcxproj.filters", "ofxGgmlAudioTranscribeExample.vcxproj.user", "ofxGgmlAudioTranscribeExample.xcodeproj")) {
-		Assert-Missing (Join-Path $exampleRoot $relative) $relative
-	}
-	Assert-Path (Join-Path $exampleRoot "src\ofApp.cpp") "source file"
-	Assert-Path (Join-Path $exampleRoot "README.md") "README"
+		$generated = @(
+			"bin\$($case.Name).exe",
+			"obj\generated.obj",
+			".vs\state.bin",
+			"dll\copied.dll",
+			"icon.rc",
+			"config.make",
+			"Makefile",
+			"$($case.Name).sln",
+			"$($case.Name).vcxproj",
+			"$($case.Name).vcxproj.filters",
+			"$($case.Name).vcxproj.user",
+			"$($case.Name).xcodeproj\project.pbxproj"
+		)
 
-	Write-Step "Transcribe example clean missing-root regression"
+		foreach ($relative in $generated) {
+			New-File (Join-Path $exampleRoot $relative)
+		}
+
+		Write-Step "$($case.Label) example clean dry-run regression"
+		$dryRunOutput = & $script -Example $case.Example -ExampleRoot $exampleRoot -DryRun 2>&1 6>&1 | ForEach-Object { $_.ToString() } | Out-String
+		if ($dryRunOutput -notmatch "remove: bin") {
+			throw "$($case.Label) clean dry-run did not list generated bin output.`n$dryRunOutput"
+		}
+		Assert-Path (Join-Path $exampleRoot "bin") "$($case.Label) dry-run generated bin"
+
+		if (![string]::IsNullOrWhiteSpace($case.Wrapper)) {
+			$wrapper = Join-Path $scriptRoot $case.Wrapper
+			$wrapperOutput = & $wrapper -ExampleRoot $exampleRoot -DryRun 2>&1 6>&1 | ForEach-Object { $_.ToString() } | Out-String
+			if ($wrapperOutput -notmatch "remove: bin") {
+				throw "$($case.Label) wrapper clean dry-run did not list generated bin output.`n$wrapperOutput"
+			}
+		}
+
+		Write-Step "$($case.Label) example clean remove regression"
+		& $script -Example $case.Example -ExampleRoot $exampleRoot
+		foreach ($relative in @("bin", "obj", ".vs", "dll", "icon.rc", "config.make", "Makefile", "$($case.Name).sln", "$($case.Name).vcxproj", "$($case.Name).vcxproj.filters", "$($case.Name).vcxproj.user", "$($case.Name).xcodeproj")) {
+			Assert-Missing (Join-Path $exampleRoot $relative) $relative
+		}
+		Assert-Path (Join-Path $exampleRoot "src\ofApp.cpp") "$($case.Label) source file"
+		Assert-Path (Join-Path $exampleRoot "README.md") "$($case.Label) README"
+	}
+
+	Write-Step "Example clean missing-root regression"
 	$missingRootFailedClearly = $false
 	try {
 		& $script -ExampleRoot (Join-Path $scratchRoot "missing")
@@ -94,7 +109,7 @@ try {
 		throw "clean script did not fail clearly for a missing example root."
 	}
 
-	Write-Step "Transcribe example clean regression passed"
+	Write-Step "Example clean regression passed"
 } finally {
 	if (Test-Path -LiteralPath $scratchRoot) {
 		Remove-Item -LiteralPath $scratchRoot -Recurse -Force

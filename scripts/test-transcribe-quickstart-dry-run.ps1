@@ -42,4 +42,21 @@ Write-Step "Transcribe quickstart forced-runtime dry-run"
 $forceRuntimeOutput = & $script -DryRun -ForceRuntime 2>&1 6>&1 | Out-String
 Assert-Contains $forceRuntimeOutput "runtime: build-whisper" "quickstart forced-runtime dry-run"
 
-Write-Step "Transcribe quickstart dry-run coverage passed"
+Write-Step "Whisper quickstart dry-run"
+$whisperOutput = & (Join-Path $scriptRoot "quickstart-whisper-example.ps1") -DryRun -SkipRuntime -SkipAssets -BuildOnly 2>&1 6>&1 | Out-String
+Assert-Contains $whisperOutput "Whisper quickstart plan" "Whisper quickstart dry-run"
+Assert-Contains $whisperOutput "runtime: SKIP" "Whisper quickstart dry-run"
+Assert-Contains $whisperOutput "assets: SKIP" "Whisper quickstart dry-run"
+Assert-Contains $whisperOutput "launch: OFF" "Whisper quickstart dry-run"
+
+Write-Step "Live mic quickstart dry-run"
+$liveMicOutput = & (Join-Path $scriptRoot "quickstart-live-mic-example.ps1") -DryRun 2>&1 6>&1 | Out-String
+Assert-Contains $liveMicOutput "Live mic quickstart plan" "Live mic quickstart dry-run"
+Assert-Contains $liveMicOutput "runtime: SKIP" "Live mic quickstart dry-run"
+Assert-Contains $liveMicOutput "assets: SKIP" "Live mic quickstart dry-run"
+Assert-Contains $liveMicOutput "launch: ON" "Live mic quickstart dry-run"
+if ($liveMicOutput.Contains("language:")) {
+	throw "Live mic quickstart should not print Whisper language settings.`n$liveMicOutput"
+}
+
+Write-Step "Example quickstart dry-run coverage passed"

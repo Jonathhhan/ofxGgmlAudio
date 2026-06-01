@@ -16,6 +16,7 @@ Windows:
 ```powershell
 ..\scripts\doctor-audio.bat
 ..\scripts\quickstart-transcribe-example.bat
+..\scripts\clean-transcribe-example.bat -DryRun
 ```
 
 macOS/Linux:
@@ -23,6 +24,7 @@ macOS/Linux:
 ```sh
 ../scripts/doctor-audio.sh
 ../scripts/quickstart-transcribe-example.sh
+../scripts/clean-transcribe-example.sh -DryRun
 ```
 
 For manual setup, build the optional runtime, download local assets, then

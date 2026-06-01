@@ -149,6 +149,8 @@ It captures mono mic input, feeds `ofxGgmlAudioStreamChunker`, and displays
 RMS/peak/zero-crossing features plus the deterministic voice-activity baseline.
 It intentionally does not claim model-backed live transcription yet; use the
 Whisper examples for model-backed file and chunked transcription evidence.
+Use `scripts\quickstart-live-mic-example.bat` or
+`./scripts/quickstart-live-mic-example.sh` to build and launch it.
 
 The example Runtime panel reports whether Whisper is compiled and loaded, the
 CPU/GPU acceleration flags reported by whisper.cpp, the loaded model path, and
@@ -167,6 +169,10 @@ scripts\doctor-audio.bat
 scripts\run-audio-runtime-smoke.bat -DryRun
 scripts\build-whisper-example.bat -WithWhisper
 scripts\run-whisper-example.bat
+scripts\quickstart-whisper-example.bat -DryRun
+scripts\quickstart-live-mic-example.bat -DryRun
+scripts\quickstart-live-mic-example.bat
+scripts\clean-live-mic-example.bat -DryRun
 scripts\quickstart-transcribe-example.bat
 scripts\quickstart-transcribe-example.bat -DryRun
 ```
@@ -175,6 +181,10 @@ On macOS/Linux:
 
 ```sh
 ./scripts/doctor-audio.sh
+./scripts/quickstart-whisper-example.sh -DryRun
+./scripts/quickstart-live-mic-example.sh -DryRun
+./scripts/quickstart-live-mic-example.sh
+./scripts/clean-live-mic-example.sh -DryRun
 ./scripts/quickstart-transcribe-example.sh
 ./scripts/quickstart-transcribe-example.sh -DryRun
 ```
@@ -182,7 +192,8 @@ On macOS/Linux:
 `doctor-audio` prints the current setup state and the next likely command when
 something is missing. The quickstart reuses an installed Whisper runtime when
 present, downloads the default tiny model and sample WAV, builds the
-openFrameworks example with `-WithWhisper`, then launches it. Use
+openFrameworks Whisper examples with `-WithWhisper`, then launches the selected
+example. The live mic quickstart skips Whisper runtime and asset setup. Use
 `-ForceRuntime` to rebuild the optional runtime. For manual control, run the
 lower-level scripts directly:
 
@@ -190,6 +201,8 @@ lower-level scripts directly:
 scripts\build-whisper.bat
 scripts\download-whisper-assets.bat
 scripts\run-transcribe-example.bat -Build -WithWhisper
+scripts\run-whisper-example.bat -Build -WithWhisper
+scripts\run-live-mic-example.bat -Build
 ```
 
 On macOS/Linux:
@@ -198,6 +211,8 @@ On macOS/Linux:
 ./scripts/build-whisper.sh
 ./scripts/download-whisper-assets.sh
 ./scripts/run-transcribe-example.sh -Build -WithWhisper
+./scripts/run-whisper-example.sh -Build -WithWhisper
+./scripts/run-live-mic-example.sh -Build
 ```
 
 ## Dependencies

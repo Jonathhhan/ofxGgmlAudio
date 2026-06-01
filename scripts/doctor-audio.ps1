@@ -70,10 +70,59 @@ function Test-AllFiles {
 	return $true
 }
 
+function Get-CoreGgmlLibraryRoots {
+	param([string]$CoreRoot)
+	return @(
+		(Join-Path $CoreRoot "libs\ggml\lib"),
+		(Join-Path $CoreRoot "libs\ggml\build-cuda\src\Release"),
+		(Join-Path $CoreRoot "libs\ggml\build-cuda\src\ggml-cuda\Release"),
+		(Join-Path $CoreRoot "libs\ggml\build-native\src\Release"),
+		(Join-Path $CoreRoot "libs\ggml\build-native\src")
+	)
+}
+
+function Test-CoreGgmlHeaderAvailable {
+	param([string]$CoreRoot)
+	foreach ($path in @(
+		(Join-Path $CoreRoot "libs\ggml\include\ggml.h"),
+		(Join-Path $CoreRoot "libs\ggml\.source\include\ggml.h")
+	)) {
+		if (Test-Path -LiteralPath $path -PathType Leaf) {
+			return $true
+		}
+	}
+	return $false
+}
+
+function Test-CoreGgmlLibrariesAvailable {
+	param([string]$CoreRoot)
+	$libraryNames = if (Test-WindowsHost) {
+		@("ggml.lib", "ggml-base.lib", "ggml-cpu.lib")
+	} else {
+		@("libggml.a", "libggml-base.a", "libggml-cpu.a")
+	}
+	foreach ($libRoot in Get-CoreGgmlLibraryRoots -CoreRoot $CoreRoot) {
+		if (!(Test-Path -LiteralPath $libRoot -PathType Container)) {
+			continue
+		}
+		$allPresent = $true
+		foreach ($libraryName in $libraryNames) {
+			if (!(Test-Path -LiteralPath (Join-Path $libRoot $libraryName) -PathType Leaf)) {
+				$allPresent = $false
+				break
+			}
+		}
+		if ($allPresent) {
+			return $true
+		}
+	}
+	return $false
+}
+
 function Get-CoreGgmlAccelerators {
 	param([string]$CoreRoot)
 
-	$libRoot = Join-Path $CoreRoot "libs\ggml\lib"
+	$libRoots = Get-CoreGgmlLibraryRoots -CoreRoot $CoreRoot
 	$candidates = if (Test-WindowsHost) {
 		@(
 			@{ Name = "CUDA"; File = "ggml-cuda.lib" },
@@ -92,8 +141,11 @@ function Get-CoreGgmlAccelerators {
 
 	$accelerators = @()
 	foreach ($candidate in $candidates) {
-		if (Test-Path -LiteralPath (Join-Path $libRoot $candidate.File) -PathType Leaf) {
-			$accelerators += $candidate.Name
+		foreach ($libRoot in $libRoots) {
+			if (Test-Path -LiteralPath (Join-Path $libRoot $candidate.File) -PathType Leaf) {
+				$accelerators += $candidate.Name
+				break
+			}
 		}
 	}
 	return $accelerators
@@ -121,20 +173,38 @@ $addonsRoot = Split-Path -Parent $addonRoot
 $ofRoot = Split-Path -Parent $addonsRoot
 $coreRoot = Join-Path $addonsRoot "ofxGgmlCore"
 $imguiRoot = Join-Path $addonsRoot "ofxImGui"
-$exampleRoot = Join-Path $addonRoot "ofxGgmlAudioTranscribeExample"
+$transcribeExampleRoot = Join-Path $addonRoot "ofxGgmlAudioTranscribeExample"
+$whisperExampleRoot = Join-Path $addonRoot "ofxGgmlAudioWhisperExample"
+$liveMicExampleRoot = Join-Path $addonRoot "ofxGgmlAudioLiveMicExample"
 $modelPath = Join-Path $addonRoot "models\ggml-$ModelName.bin"
 $audioPath = Join-Path $addonRoot "audio\jfk.wav"
-$exampleExe = if (Test-WindowsHost) {
-	Join-Path $exampleRoot "bin\ofxGgmlAudioTranscribeExample.exe"
+$transcribeExe = if (Test-WindowsHost) {
+	Join-Path $transcribeExampleRoot "bin\ofxGgmlAudioTranscribeExample.exe"
 } else {
-	Join-Path $exampleRoot "bin/ofxGgmlAudioTranscribeExample"
+	Join-Path $transcribeExampleRoot "bin/ofxGgmlAudioTranscribeExample"
+}
+$whisperExe = if (Test-WindowsHost) {
+	Join-Path $whisperExampleRoot "bin\ofxGgmlAudioWhisperExample.exe"
+} else {
+	Join-Path $whisperExampleRoot "bin/ofxGgmlAudioWhisperExample"
+}
+$liveMicExe = if (Test-WindowsHost) {
+	Join-Path $liveMicExampleRoot "bin\ofxGgmlAudioLiveMicExample.exe"
+} else {
+	Join-Path $liveMicExampleRoot "bin/ofxGgmlAudioLiveMicExample"
 }
 $coreSetupCommand = "$(Get-PlatformSiblingScript -AddonName 'ofxGgmlCore' -Name 'setup-ggml') -Cuda"
 $buildWhisperCommand = Get-PlatformScript -Name "build-whisper"
 $downloadAssetsCommand = Get-PlatformScript -Name "download-whisper-assets"
-$quickstartCommand = Get-PlatformScript -Name "quickstart-transcribe-example"
-$runBuildCommand = "$(Get-PlatformScript -Name 'run-transcribe-example') -Build -WithWhisper"
-$runCommand = Get-PlatformScript -Name "run-transcribe-example"
+$transcribeQuickstartCommand = Get-PlatformScript -Name "quickstart-transcribe-example"
+$whisperQuickstartCommand = Get-PlatformScript -Name "quickstart-whisper-example"
+$liveMicQuickstartCommand = Get-PlatformScript -Name "quickstart-live-mic-example"
+$transcribeRunBuildCommand = "$(Get-PlatformScript -Name 'run-transcribe-example') -Build -WithWhisper"
+$whisperRunBuildCommand = "$(Get-PlatformScript -Name 'run-whisper-example') -Build -WithWhisper"
+$liveMicRunBuildCommand = "$(Get-PlatformScript -Name 'run-live-mic-example') -Build"
+$transcribeRunCommand = Get-PlatformScript -Name "run-transcribe-example"
+$whisperRunCommand = Get-PlatformScript -Name "run-whisper-example"
+$liveMicRunCommand = Get-PlatformScript -Name "run-live-mic-example"
 $validateCommand = Get-PlatformScript -Name "validate-local"
 
 $checks = [System.Collections.Generic.List[object]]::new()
@@ -146,12 +216,8 @@ Add-Check $checks "PowerShell" ((Test-CommandAvailable "pwsh") -or (Test-Command
 Add-Check $checks "git" (Test-CommandAvailable "git") "git on PATH" "Install Git and reopen the terminal."
 Add-Check $checks "cmake" (Test-CommandAvailable "cmake") "cmake on PATH" "Install CMake and reopen the terminal."
 
-$coreRuntimeFiles = if (Test-WindowsHost) {
-	@("libs\ggml\include\ggml.h", "libs\ggml\lib\ggml.lib", "libs\ggml\lib\ggml-base.lib", "libs\ggml\lib\ggml-cpu.lib")
-} else {
-	@("libs/ggml/include/ggml.h", "libs/ggml/lib/libggml.a", "libs/ggml/lib/libggml-base.a", "libs/ggml/lib/libggml-cpu.a")
-}
-$coreGgmlReady = Test-AllFiles -Root $coreRoot -RelativePaths $coreRuntimeFiles
+$coreGgmlReady = (Test-CoreGgmlHeaderAvailable -CoreRoot $coreRoot) -and
+	(Test-CoreGgmlLibrariesAvailable -CoreRoot $coreRoot)
 Add-Check $checks "ofxGgmlCore ggml runtime" $coreGgmlReady (Join-Path $coreRoot "libs\ggml") $coreSetupCommand
 
 $whisperRuntimeFiles = if (Test-WindowsHost) {
@@ -170,7 +236,9 @@ $audioReady = (Test-Path -LiteralPath $audioPath -PathType Leaf) -or
 	(Test-AnyFile -Directories @((Join-Path $addonRoot "audio"), (Join-Path $addonsRoot "audio")) -Extensions @(".wav"))
 Add-Check $checks "WAV input" $audioReady $audioPath $downloadAssetsCommand
 
-Add-Check $checks "Transcribe example executable" (Test-Path -LiteralPath $exampleExe -PathType Leaf) $exampleExe $runBuildCommand
+Add-Check $checks "Transcribe example executable" (Test-Path -LiteralPath $transcribeExe -PathType Leaf) $transcribeExe $transcribeRunBuildCommand
+Add-Check $checks "Whisper example executable" (Test-Path -LiteralPath $whisperExe -PathType Leaf) $whisperExe $whisperRunBuildCommand
+Add-Check $checks "Live mic example executable" (Test-Path -LiteralPath $liveMicExe -PathType Leaf) $liveMicExe $liveMicRunBuildCommand
 
 Write-Host "ofxGgmlAudio doctor"
 Write-Host ""
@@ -190,19 +258,27 @@ Write-Host "Runtime notes"
 Write-Host "  Whisper example Threads controls CPU worker threads only."
 Write-Host "  Core ggml accelerator candidates: $acceleratorText"
 Write-Host "  Actual Whisper GPU use depends on how whisper.cpp was built and is reported in the example Runtime panel."
+Write-Host "  Live mic quickstart skips Whisper runtime and sample asset setup."
 
 $missing = @($checks | Where-Object { !$_.Ok })
 Write-Host ""
 if ($missing.Count -eq 0) {
-	Write-Host "Ready. Run: $runCommand"
+	Write-Host "Ready. Run:"
+	Write-Host "  $transcribeRunCommand"
+	Write-Host "  $whisperRunCommand"
+	Write-Host "  $liveMicRunCommand"
 	exit 0
 }
 
 Write-Host "Next likely command:"
 if (!$coreGgmlReady) {
 	Write-Host "  $coreSetupCommand"
-} elseif (!$whisperReady -or !$modelReady -or !$audioReady -or !(Test-Path -LiteralPath $exampleExe -PathType Leaf)) {
-	Write-Host "  $quickstartCommand"
+} elseif (!(Test-Path -LiteralPath $liveMicExe -PathType Leaf)) {
+	Write-Host "  $liveMicQuickstartCommand"
+} elseif (!$whisperReady -or !$modelReady -or !$audioReady -or !(Test-Path -LiteralPath $transcribeExe -PathType Leaf)) {
+	Write-Host "  $transcribeQuickstartCommand"
+} elseif (!(Test-Path -LiteralPath $whisperExe -PathType Leaf)) {
+	Write-Host "  $whisperQuickstartCommand"
 } else {
 	Write-Host "  $validateCommand"
 }
