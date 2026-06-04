@@ -26,6 +26,10 @@ macOS/Linux:
 ../scripts/clean-whisper-example.sh -DryRun
 ```
 
+Use `-Jobs 0` on the quickstart or run script to use all logical cores while
+building the example, or a positive value such as `-Jobs 4` for a fixed job
+count.
+
 Optional environment defaults:
 
 Windows:

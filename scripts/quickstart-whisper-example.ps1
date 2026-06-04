@@ -6,6 +6,7 @@ param(
 	[int]$Threads = 0,
 	[string]$Configuration = "Release",
 	[string]$Platform = "x64",
+	[int]$Jobs = 1,
 	[switch]$CpuOnly,
 	[switch]$Cuda,
 	[switch]$Vulkan,
@@ -29,6 +30,7 @@ $scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 	-Threads $Threads `
 	-Configuration $Configuration `
 	-Platform $Platform `
+	-Jobs $Jobs `
 	-CpuOnly:$CpuOnly `
 	-Cuda:$Cuda `
 	-Vulkan:$Vulkan `

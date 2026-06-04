@@ -3,7 +3,8 @@ param(
 	[string]$Platform = "x64",
 	[switch]$Clean,
 	[switch]$WithWhisper,
-	[switch]$DryRun
+	[switch]$DryRun,
+	[int]$Jobs = 1
 )
 
 $scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -13,5 +14,6 @@ $scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 	-Platform $Platform `
 	-Clean:$Clean `
 	-WithWhisper:$WithWhisper `
-	-DryRun:$DryRun
+	-DryRun:$DryRun `
+	-Jobs $Jobs
 exit $LASTEXITCODE

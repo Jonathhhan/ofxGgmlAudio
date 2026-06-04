@@ -63,6 +63,14 @@ function Find-FirstFile {
 	return ""
 }
 
+function Get-PlatformScript {
+	param([string]$Name)
+	if ($IsLinux -or $IsMacOS) {
+		return "./scripts/$Name.sh"
+	}
+	return "scripts\$Name.bat"
+}
+
 $scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $addonRoot = Resolve-Path (Join-Path $scriptRoot "..")
 $exampleName = switch ($Example) {
@@ -75,8 +83,24 @@ $exampleLabel = switch ($Example) {
 	"live-mic" { "Live mic" }
 	default { "Transcribe" }
 }
+$runScriptName = switch ($Example) {
+	"whisper" { "run-whisper-example" }
+	"live-mic" { "run-live-mic-example" }
+	default { "run-transcribe-example" }
+}
+$quickstartScriptName = switch ($Example) {
+	"whisper" { "quickstart-whisper-example" }
+	"live-mic" { "quickstart-live-mic-example" }
+	default { "quickstart-transcribe-example" }
+}
+$runBuildCommand = "$(Get-PlatformScript -Name $runScriptName) -Build$(if ($Example -ne 'live-mic') { ' -WithWhisper' } else { '' })"
+$quickstartCommand = Get-PlatformScript -Name $quickstartScriptName
 $exampleRoot = Join-Path $addonRoot $exampleName
-$exampleExe = Join-Path $exampleRoot "bin\$exampleName.exe"
+$exampleExe = if ($IsLinux -or $IsMacOS) {
+	Join-Path $exampleRoot "bin/$exampleName"
+} else {
+	Join-Path $exampleRoot "bin\$exampleName.exe"
+}
 
 if ($Build) {
 	$buildArgs = @{
@@ -97,8 +121,10 @@ if ($Build) {
 if (!(Test-Path -LiteralPath $exampleExe -PathType Leaf)) {
 	if ($DryRun) {
 		Write-Warning "$exampleLabel example executable was not found: $exampleExe"
+		Write-Warning "Build it with: $runBuildCommand"
+		Write-Warning "First run shortcut: $quickstartCommand"
 	} else {
-		throw "$exampleLabel example executable was not found: $exampleExe. Run scripts\run-transcribe-example.bat -Example $Example -Build first."
+		throw "$exampleLabel example executable was not found: $exampleExe. Run '$runBuildCommand' or '$quickstartCommand' first."
 	}
 }
 

@@ -194,8 +194,10 @@ something is missing. The quickstart reuses an installed Whisper runtime when
 present, downloads the default tiny model and sample WAV, builds the
 openFrameworks Whisper examples with `-WithWhisper`, then launches the selected
 example. The live mic quickstart skips Whisper runtime and asset setup. Use
-`-ForceRuntime` to rebuild the optional runtime. For manual control, run the
-lower-level scripts directly:
+`-ForceRuntime` to rebuild the optional runtime. Add `-Jobs 0` to example
+quickstarts or run scripts to use all logical cores for the example build, or a
+positive value such as `-Jobs 4` for a fixed job count. For manual control, run
+the lower-level scripts directly:
 
 ```powershell
 scripts\build-whisper.bat

@@ -27,6 +27,10 @@ macOS/Linux:
 ../scripts/clean-transcribe-example.sh -DryRun
 ```
 
+Use `-Jobs 0` on the quickstart or run script to use all logical cores while
+building the example, or a positive value such as `-Jobs 4` for a fixed job
+count.
+
 For manual setup, build the optional runtime, download local assets, then
 compile the generated project with `OFXGGMLAUDIO_WITH_WHISPER` enabled:
 

@@ -113,6 +113,19 @@ scripts\quickstart-live-mic-example.bat -DryRun
 The live mic quickstart skips Whisper runtime and asset steps; it builds and
 launches the microphone feature/VAD diagnostic example.
 
+Pass `-Jobs 0` to use all logical cores for the example build, or pass a
+positive number such as `-Jobs 4` to choose a fixed MSBuild job count:
+
+```powershell
+scripts\quickstart-whisper-example.bat -Jobs 0
+scripts\quickstart-live-mic-example.bat -Jobs 4
+```
+
+```sh
+./scripts/quickstart-whisper-example.sh -Jobs 0
+./scripts/quickstart-live-mic-example.sh -Jobs 4
+```
+
 ## 4. Manual Path
 
 Use the lower-level scripts when you want control over each step.

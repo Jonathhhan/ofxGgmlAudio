@@ -8,6 +8,7 @@ param(
 	[int]$Threads = 0,
 	[string]$Configuration = "Release",
 	[string]$Platform = "x64",
+	[int]$Jobs = 1,
 	[switch]$CpuOnly,
 	[switch]$Cuda,
 	[switch]$Vulkan,
@@ -100,7 +101,8 @@ $assetArgs = @("-Model", $ModelName)
 $exampleBuildArgs = @(
 	"-Example", $Example,
 	"-Configuration", $Configuration,
-	"-Platform", $Platform
+	"-Platform", $Platform,
+	"-Jobs", [string]$Jobs
 )
 if ($usesWhisper) { $exampleBuildArgs += "-WithWhisper" }
 $runArgs = @(
@@ -128,6 +130,7 @@ if ($DryRun) {
 	Write-Host "  launch: $(if ($BuildOnly) { 'OFF' } else { 'ON' })"
 	Write-Host "  configuration: $Configuration"
 	Write-Host "  platform: $Platform"
+	Write-Host "  jobs: $Jobs"
 	if ($usesWhisper) {
 		Write-Host "  language: $Language"
 		Write-Host "  threads: $Threads"

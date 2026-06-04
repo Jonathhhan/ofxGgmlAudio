@@ -34,4 +34,10 @@ $skipOutput = & $script -DryRun -SkipModel -SkipSample 2>&1 6>&1 | Out-String
 Assert-Contains $skipOutput "model: SKIP" "asset skip dry-run"
 Assert-Contains $skipOutput "sample: SKIP" "asset skip dry-run"
 
+Write-Step "Whisper asset skip completion"
+$skipCompletionOutput = & $script -SkipModel -SkipSample 2>&1 6>&1 | Out-String
+Assert-Contains $skipCompletionOutput "Assets are ready for Whisper file transcription examples" "asset skip completion"
+Assert-Contains $skipCompletionOutput "run-transcribe-example" "asset skip completion"
+Assert-Contains $skipCompletionOutput "run-whisper-example" "asset skip completion"
+
 Write-Step "Whisper asset dry-run coverage passed"

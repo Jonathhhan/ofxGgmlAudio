@@ -28,13 +28,15 @@ Assert-Contains $defaultOutput "runtime:" "quickstart dry-run"
 Assert-Contains $defaultOutput "assets: tiny.en + jfk.wav" "quickstart dry-run"
 Assert-Contains $defaultOutput "example build: ON" "quickstart dry-run"
 Assert-Contains $defaultOutput "launch: ON" "quickstart dry-run"
+Assert-Contains $defaultOutput "jobs: 1" "quickstart dry-run"
 Assert-Contains $defaultOutput "Dry run complete; no files were changed" "quickstart dry-run"
 
 Write-Step "Transcribe quickstart build-only dry-run"
-$buildOnlyOutput = & $script -DryRun -SkipRuntime -SkipAssets -BuildOnly -ModelName base.en -Language en -Threads 4 2>&1 6>&1 | Out-String
+$buildOnlyOutput = & $script -DryRun -SkipRuntime -SkipAssets -BuildOnly -ModelName base.en -Language en -Threads 4 -Jobs 2 2>&1 6>&1 | Out-String
 Assert-Contains $buildOnlyOutput "runtime: SKIP" "quickstart build-only dry-run"
 Assert-Contains $buildOnlyOutput "assets: SKIP" "quickstart build-only dry-run"
 Assert-Contains $buildOnlyOutput "launch: OFF" "quickstart build-only dry-run"
+Assert-Contains $buildOnlyOutput "jobs: 2" "quickstart build-only dry-run"
 Assert-Contains $buildOnlyOutput "language: en" "quickstart build-only dry-run"
 Assert-Contains $buildOnlyOutput "threads: 4" "quickstart build-only dry-run"
 
@@ -43,18 +45,20 @@ $forceRuntimeOutput = & $script -DryRun -ForceRuntime 2>&1 6>&1 | Out-String
 Assert-Contains $forceRuntimeOutput "runtime: build-whisper" "quickstart forced-runtime dry-run"
 
 Write-Step "Whisper quickstart dry-run"
-$whisperOutput = & (Join-Path $scriptRoot "quickstart-whisper-example.ps1") -DryRun -SkipRuntime -SkipAssets -BuildOnly 2>&1 6>&1 | Out-String
+$whisperOutput = & (Join-Path $scriptRoot "quickstart-whisper-example.ps1") -DryRun -SkipRuntime -SkipAssets -BuildOnly -Jobs 3 2>&1 6>&1 | Out-String
 Assert-Contains $whisperOutput "Whisper quickstart plan" "Whisper quickstart dry-run"
 Assert-Contains $whisperOutput "runtime: SKIP" "Whisper quickstart dry-run"
 Assert-Contains $whisperOutput "assets: SKIP" "Whisper quickstart dry-run"
 Assert-Contains $whisperOutput "launch: OFF" "Whisper quickstart dry-run"
+Assert-Contains $whisperOutput "jobs: 3" "Whisper quickstart dry-run"
 
 Write-Step "Live mic quickstart dry-run"
-$liveMicOutput = & (Join-Path $scriptRoot "quickstart-live-mic-example.ps1") -DryRun 2>&1 6>&1 | Out-String
+$liveMicOutput = & (Join-Path $scriptRoot "quickstart-live-mic-example.ps1") -DryRun -Jobs 4 2>&1 6>&1 | Out-String
 Assert-Contains $liveMicOutput "Live mic quickstart plan" "Live mic quickstart dry-run"
 Assert-Contains $liveMicOutput "runtime: SKIP" "Live mic quickstart dry-run"
 Assert-Contains $liveMicOutput "assets: SKIP" "Live mic quickstart dry-run"
 Assert-Contains $liveMicOutput "launch: ON" "Live mic quickstart dry-run"
+Assert-Contains $liveMicOutput "jobs: 4" "Live mic quickstart dry-run"
 if ($liveMicOutput.Contains("language:")) {
 	throw "Live mic quickstart should not print Whisper language settings.`n$liveMicOutput"
 }

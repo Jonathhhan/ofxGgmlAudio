@@ -28,6 +28,18 @@ function Normalize-Directory {
 	return [System.IO.Path]::GetFullPath($Directory)
 }
 
+function Test-WindowsHost {
+	return !($IsLinux -or $IsMacOS)
+}
+
+function Get-PlatformScript {
+	param([string]$Name)
+	if (Test-WindowsHost) {
+		return "scripts\$Name.bat"
+	}
+	return "./scripts/$Name.sh"
+}
+
 function Invoke-Download {
 	param(
 		[string]$Url,
@@ -73,6 +85,8 @@ if (!$SkipSample) {
 	Invoke-Download -Url $SampleUrl -OutputPath $sampleFile -Label "Whisper sample audio"
 }
 
-Write-Step "Done. Assets are ready for scripts\run-transcribe-example.bat"
+Write-Step "Done. Assets are ready for Whisper file transcription examples"
 Write-Host "  model: $modelFile"
 Write-Host "  audio: $sampleFile"
+Write-Host "  transcribe: $(Get-PlatformScript -Name 'run-transcribe-example')"
+Write-Host "  whisper: $(Get-PlatformScript -Name 'run-whisper-example')"

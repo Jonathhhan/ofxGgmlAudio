@@ -64,6 +64,7 @@ Assert-FileContains (Join-Path $addonRoot "README.md") "docs/QUICKSTART.md" "REA
 Assert-FileContains (Join-Path $addonRoot "README.md") "docs/AUDIO_WORKFLOWS.md" "README"
 Assert-FileContains (Join-Path $addonRoot "docs\QUICKSTART.md") "scripts\\quickstart-transcribe-example.bat" "quickstart docs"
 Assert-FileContains (Join-Path $addonRoot "docs\QUICKSTART.md") "./scripts/quickstart-transcribe-example.sh" "quickstart docs"
+Assert-FileContains (Join-Path $addonRoot "docs\QUICKSTART.md") "-Jobs 0" "quickstart docs"
 Assert-FileContains (Join-Path $addonRoot "docs\QUICKSTART.md") "projectGenerator.exe" "quickstart docs"
 Assert-FileContains (Join-Path $addonRoot "docs\AUDIO_WORKFLOWS.md") "Planning handoff" "audio workflow docs"
 Assert-FileContains (Join-Path $addonRoot "docs\AUDIO_WORKFLOWS.md") "Validation ladder" "audio workflow docs"
@@ -110,6 +111,7 @@ Assert-FileContains (Join-Path $transcribeExampleRoot "src\ofApp.cpp") "ofxGgmlA
 Assert-FileContains (Join-Path $transcribeExampleRoot "README.md") "..\\scripts\\quickstart-transcribe-example.bat" "transcribe example README"
 Assert-FileContains (Join-Path $transcribeExampleRoot "README.md") "../scripts/quickstart-transcribe-example.sh" "transcribe example README"
 Assert-FileContains (Join-Path $transcribeExampleRoot "README.md") "OFXGGML_AUDIO_MODEL" "transcribe example README"
+Assert-FileContains (Join-Path $transcribeExampleRoot "README.md") "-Jobs 0" "transcribe example README"
 
 $whisperExampleRoot = Join-Path $addonRoot "ofxGgmlAudioWhisperExample"
 Assert-Path $whisperExampleRoot "root-level Whisper example" -Directory
@@ -123,6 +125,7 @@ Assert-FileContains (Join-Path $whisperExampleRoot "src\ofApp.cpp") "ofxGgmlAudi
 Assert-FileContains (Join-Path $whisperExampleRoot "README.md") "..\\scripts\\quickstart-whisper-example.bat" "Whisper example README"
 Assert-FileContains (Join-Path $whisperExampleRoot "README.md") "../scripts/quickstart-whisper-example.sh" "Whisper example README"
 Assert-FileContains (Join-Path $whisperExampleRoot "README.md") "OFXGGML_AUDIO_MODEL" "Whisper example README"
+Assert-FileContains (Join-Path $whisperExampleRoot "README.md") "-Jobs 0" "Whisper example README"
 
 $liveMicExampleRoot = Join-Path $addonRoot "ofxGgmlAudioLiveMicExample"
 Assert-Path $liveMicExampleRoot "root-level live mic example" -Directory
@@ -135,6 +138,7 @@ Assert-FileContains (Join-Path $liveMicExampleRoot "src\ofApp.cpp") "ofSoundStre
 Assert-FileContains (Join-Path $liveMicExampleRoot "src\ofApp.cpp") "chunker\.setup" "live mic example chunker source"
 Assert-FileContains (Join-Path $liveMicExampleRoot "src\ofApp.cpp") "estimateVoiceActivity" "live mic example VAD source"
 Assert-FileContains (Join-Path $liveMicExampleRoot "README.md") "Live microphone stream example" "live mic example README"
+Assert-FileContains (Join-Path $liveMicExampleRoot "README.md") "-Jobs 0" "live mic example README"
 
 Assert-Path (Join-Path $addonRoot "tests\CMakeLists.txt") "test CMakeLists"
 Assert-Path (Join-Path $addonRoot "tests\test_main.cpp") "test source"
