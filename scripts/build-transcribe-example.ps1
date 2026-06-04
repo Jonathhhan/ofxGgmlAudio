@@ -577,6 +577,16 @@ function Repair-VisualStudioProjectFile {
 				$changed = $true
 			}
 		}
+		foreach ($definition in @(
+			"ofxAddons_ENABLE_IMGUI",
+			"OFXIMGUI_GLFW_EVENTS_REPLACE_OF_CALLBACKS=0",
+			"OFXIMGUI_GLFW_FIX_MULTICONTEXT_PRIMARY_VP=0",
+			"OFXIMGUI_GLFW_FIX_MULTICONTEXT_SECONDARY_VP=1"
+		)) {
+			if (Add-CompilerDefinition -Doc $doc -Namespace $namespace -Definition $definition) {
+				$changed = $true
+			}
+		}
 		if ($WithWhisper) {
 			if (Add-CompilerDefinition -Doc $doc -Namespace $namespace -Definition "OFXGGMLAUDIO_WITH_WHISPER") {
 				$changed = $true
