@@ -124,7 +124,7 @@ namespace {
 
 void ofApp::setup() {
 	ofSetWindowTitle(WindowTitle);
-	gui.setup();
+	gui.setup(nullptr, false);
 
 	const auto modelFromEnv = trimText(envValue("OFXGGML_AUDIO_MODEL"));
 	const auto audioFromEnv = trimText(envValue("OFXGGML_AUDIO_FILE"));

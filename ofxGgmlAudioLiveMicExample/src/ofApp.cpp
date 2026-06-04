@@ -4,8 +4,6 @@
 
 #include <algorithm>
 #include <cmath>
-#include <cstdlib>
-#include <fstream>
 
 namespace {
 	constexpr const char * LogModule = "ofxGgmlAudioLiveMicExample";
@@ -29,46 +27,16 @@ namespace {
 		return peak;
 	}
 
-	bool startupProbeEnabled() {
-		const auto value = std::getenv("OFXGGML_AUDIO_STARTUP_PROBE");
-		return value != nullptr && std::string(value) != "0" && std::string(value) != "false";
-	}
-
-	std::string startupProbePath() {
-		const auto explicitPath = std::getenv("OFXGGML_AUDIO_STARTUP_PROBE_PATH");
-		if (explicitPath != nullptr && std::string(explicitPath).size() > 0) {
-			return explicitPath;
-		}
-
-		const auto temp = std::getenv("TEMP");
-		if (temp != nullptr && std::string(temp).size() > 0) {
-			return std::string(temp) + "\\ofxGgmlAudioLiveMic-startup.txt";
-		}
-		return "ofxGgmlAudioLiveMic-startup.txt";
-	}
-
-	void writeStartupProbe(const std::string & message) {
-		if (!startupProbeEnabled()) {
-			return;
-		}
-		std::ofstream out(startupProbePath(), std::ios::app);
-		out << message << std::endl;
-	}
 }
 
 void ofApp::setup() {
-	writeStartupProbe("setup: enter");
 	ofSetWindowTitle("ofxGgmlAudio live mic example");
-	writeStartupProbe("setup: before gui.setup");
-	gui.setup();
-	writeStartupProbe("setup: after gui.setup");
+	gui.setup(nullptr, false);
 
 	chunkSettings.format.sampleRate = sampleRate;
 	chunkSettings.format.channels = channelCount;
 	chunkSettings.maxBufferedSeconds = 8.0;
-	writeStartupProbe("setup: before setupChunker");
 	setupChunker();
-	writeStartupProbe("setup: after setupChunker");
 
 	ofSoundStreamSettings settings;
 	settings.setInListener(this);
@@ -78,9 +46,7 @@ void ofApp::setup() {
 	settings.bufferSize = bufferSize;
 
 	try {
-		writeStartupProbe("setup: before stream.setup");
 		stream.setup(settings);
-		writeStartupProbe("setup: after stream.setup");
 		streamReady = true;
 		status = "capturing microphone input";
 		ofLogNotice(LogModule) << status;
