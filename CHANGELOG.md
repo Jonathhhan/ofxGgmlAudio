@@ -17,6 +17,13 @@
   with pause/resume, reset, VAD threshold controls, and RMS/VAD history plots.
 - Added per-example build, run, clean, and quickstart wrappers for transcribe,
   Whisper, and live microphone workflows.
+- Added a GUI example startup smoke test for the transcribe, Whisper, and live
+  microphone examples, including dry-run coverage and platform-aware build
+  hints.
+- Fixed Windows GUI example startup crashes by routing early example logging to
+  the debugger before the openFrameworks window opens.
+- Cleaned generated example project defines so stale ImGui backend flags do not
+  leak into rebuilt Visual Studio projects.
 - Expanded `doctor-audio` and local validation so example setup checks cover all
   root-level examples and Core ggml local build-output layouts.
 
