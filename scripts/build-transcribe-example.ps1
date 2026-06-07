@@ -363,6 +363,22 @@ function Add-CompilerDefinition {
 	return $changed
 }
 
+function Remove-CompilerDefinition {
+	param(
+		[xml]$Doc,
+		[System.Xml.XmlNamespaceManager]$Namespace,
+		[string]$Definition
+	)
+	$changed = $false
+	$nodes = @($Doc.SelectNodes("//msb:PreprocessorDefinitions", $Namespace))
+	foreach ($node in $nodes) {
+		if (Remove-ListValue -Node $node -Value $Definition) {
+			$changed = $true
+		}
+	}
+	return $changed
+}
+
 function Add-LinkerLibraryDirectory {
 	param(
 		[xml]$Doc,
@@ -578,10 +594,17 @@ function Repair-VisualStudioProjectFile {
 			}
 		}
 		foreach ($definition in @(
-			"ofxAddons_ENABLE_IMGUI",
-			"OFXIMGUI_GLFW_EVENTS_REPLACE_OF_CALLBACKS=0",
+			"OFXIMGUI_FORCE_OF_BACKEND",
 			"OFXIMGUI_GLFW_FIX_MULTICONTEXT_PRIMARY_VP=0",
 			"OFXIMGUI_GLFW_FIX_MULTICONTEXT_SECONDARY_VP=1"
+		)) {
+			if (Remove-CompilerDefinition -Doc $doc -Namespace $namespace -Definition $definition) {
+				$changed = $true
+			}
+		}
+		foreach ($definition in @(
+			"ofxAddons_ENABLE_IMGUI",
+			"OFXIMGUI_GLFW_EVENTS_REPLACE_OF_CALLBACKS=0"
 		)) {
 			if (Add-CompilerDefinition -Doc $doc -Namespace $namespace -Definition $definition) {
 				$changed = $true
