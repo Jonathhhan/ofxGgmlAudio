@@ -4,6 +4,7 @@ param(
 	[int]$WaitSeconds = 4,
 	[string]$Configuration = "Release",
 	[string]$Platform = "x64",
+	[string]$AddonRoot = "",
 	[switch]$DryRun
 )
 
@@ -18,11 +19,28 @@ function Test-WindowsHost {
 	return !($IsLinux -or $IsMacOS)
 }
 
+function Get-PlatformScript {
+	param([string]$Name)
+	if (Test-WindowsHost) {
+		return "scripts\$Name.bat"
+	}
+	return "./scripts/$Name.sh"
+}
+
+function Get-BuildCommand {
+	param($Case)
+	$command = "$(Get-PlatformScript -Name $Case.RunScript) -Build"
+	if ($Case.WithWhisper) {
+		$command += " -WithWhisper"
+	}
+	return $command
+}
+
 function Get-ExampleCases {
 	$all = @(
-		[pscustomobject]@{ Key = "transcribe"; Label = "Transcribe"; Name = "ofxGgmlAudioTranscribeExample"; Build = "scripts\run-transcribe-example.bat -Build -WithWhisper" },
-		[pscustomobject]@{ Key = "whisper"; Label = "Whisper"; Name = "ofxGgmlAudioWhisperExample"; Build = "scripts\run-whisper-example.bat -Build -WithWhisper" },
-		[pscustomobject]@{ Key = "live-mic"; Label = "Live mic"; Name = "ofxGgmlAudioLiveMicExample"; Build = "scripts\run-live-mic-example.bat -Build" }
+		[pscustomobject]@{ Key = "transcribe"; Label = "Transcribe"; Name = "ofxGgmlAudioTranscribeExample"; RunScript = "run-transcribe-example"; WithWhisper = $true },
+		[pscustomobject]@{ Key = "whisper"; Label = "Whisper"; Name = "ofxGgmlAudioWhisperExample"; RunScript = "run-whisper-example"; WithWhisper = $true },
+		[pscustomobject]@{ Key = "live-mic"; Label = "Live mic"; Name = "ofxGgmlAudioLiveMicExample"; RunScript = "run-live-mic-example"; WithWhisper = $false }
 	)
 	if ($Example -eq "all") {
 		return $all
@@ -46,7 +64,11 @@ if ($WaitSeconds -lt 1) {
 }
 
 $scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
-$addonRoot = Resolve-Path (Join-Path $scriptRoot "..")
+$addonRoot = if ([string]::IsNullOrWhiteSpace($AddonRoot)) {
+	Resolve-Path (Join-Path $scriptRoot "..")
+} else {
+	Resolve-Path $AddonRoot
+}
 $cases = @(Get-ExampleCases)
 
 Write-Step "Audio example startup smoke plan"
@@ -60,7 +82,7 @@ foreach ($case in $cases) {
 	$exe = Get-ExecutablePath -AddonRoot $addonRoot -ExampleName $case.Name
 	Write-Step "$($case.Label) executable: $exe"
 	if (!(Test-Path -LiteralPath $exe -PathType Leaf)) {
-		$message = "$($case.Label) example executable was not found. Build it with: $($case.Build)"
+		$message = "$($case.Label) example executable was not found. Build it with: $(Get-BuildCommand -Case $case)"
 		if ($DryRun) {
 			Write-Warning $message
 			continue

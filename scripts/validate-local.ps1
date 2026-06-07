@@ -36,6 +36,18 @@ function Assert-FileContains {
 	}
 }
 
+function Assert-TextContains {
+	param(
+		[string]$Text,
+		[string]$Needle,
+		[string]$Label
+	)
+
+	if (!$Text.Contains($Needle)) {
+		throw "$Label did not contain expected text: $Needle`n$Text"
+	}
+}
+
 function Assert-JsonFile {
 	param(
 		[string]$Path,
@@ -314,11 +326,15 @@ Write-Step "Checking example launch dry-runs"
 
 Write-Step "Checking example startup smoke dry-run"
 $startupSmokeDryRun = & (Join-Path $scriptRoot "test-example-startup.ps1") -DryRun -WaitSeconds 2 2>&1 6>&1 | Out-String
-if (!$startupSmokeDryRun.Contains("Audio example startup smoke plan") -or
-	!$startupSmokeDryRun.Contains("examples: transcribe, whisper, live-mic") -or
-	!$startupSmokeDryRun.Contains("Dry run complete; no examples were launched")) {
-	throw "Example startup smoke dry-run output was unexpected:`n$startupSmokeDryRun"
-}
+Assert-TextContains $startupSmokeDryRun "Audio example startup smoke plan" "Example startup smoke dry-run"
+Assert-TextContains $startupSmokeDryRun "examples: transcribe, whisper, live-mic" "Example startup smoke dry-run"
+Assert-TextContains $startupSmokeDryRun "Dry run complete; no examples were launched" "Example startup smoke dry-run"
+
+$startupSmokeMissingRoot = Join-Path ([System.IO.Path]::GetTempPath()) "ofxGgmlAudio-startup-smoke-missing"
+New-Item -ItemType Directory -Force -Path $startupSmokeMissingRoot | Out-Null
+$startupSmokeMissingOutput = & (Join-Path $scriptRoot "test-example-startup.ps1") -DryRun -Example transcribe -AddonRoot $startupSmokeMissingRoot *>&1 | Out-String
+Assert-TextContains $startupSmokeMissingOutput "Transcribe example executable was not found" "Example startup smoke missing executable dry-run"
+Assert-TextContains $startupSmokeMissingOutput "Build it with: $(if ($IsLinux -or $IsMacOS) { './scripts/run-transcribe-example.sh' } else { 'scripts\run-transcribe-example.bat' }) -Build -WithWhisper" "Example startup smoke missing executable dry-run"
 
 Write-Step "Checking example clean dry-runs"
 & (Join-Path $scriptRoot "test-clean-transcribe-example.ps1")
