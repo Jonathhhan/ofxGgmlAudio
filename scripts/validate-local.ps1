@@ -224,6 +224,9 @@ Assert-Path (Join-Path $scriptRoot "quickstart-live-mic-example.sh") "live mic q
 Assert-Path (Join-Path $scriptRoot "test-launch-dry-run.ps1") "example launch dry-run test"
 Assert-Path (Join-Path $scriptRoot "test-launch-dry-run.bat") "example launch dry-run Windows wrapper"
 Assert-Path (Join-Path $scriptRoot "test-launch-dry-run.sh") "example launch dry-run shell wrapper"
+Assert-Path (Join-Path $scriptRoot "test-example-startup.ps1") "example startup smoke script"
+Assert-Path (Join-Path $scriptRoot "test-example-startup.bat") "example startup smoke Windows wrapper"
+Assert-Path (Join-Path $scriptRoot "test-example-startup.sh") "example startup smoke shell wrapper"
 Assert-Path (Join-Path $scriptRoot "test-transcribe-quickstart-dry-run.ps1") "example quickstart dry-run test"
 Assert-Path (Join-Path $scriptRoot "test-transcribe-quickstart-dry-run.bat") "example quickstart dry-run Windows wrapper"
 Assert-Path (Join-Path $scriptRoot "test-transcribe-quickstart-dry-run.sh") "example quickstart dry-run shell wrapper"
@@ -303,6 +306,14 @@ if ($LASTEXITCODE -ne 0) {
 
 Write-Step "Checking example launch dry-runs"
 & (Join-Path $scriptRoot "test-launch-dry-run.ps1")
+
+Write-Step "Checking example startup smoke dry-run"
+$startupSmokeDryRun = & (Join-Path $scriptRoot "test-example-startup.ps1") -DryRun -WaitSeconds 2 2>&1 6>&1 | Out-String
+if (!$startupSmokeDryRun.Contains("Audio example startup smoke plan") -or
+	!$startupSmokeDryRun.Contains("examples: transcribe, whisper, live-mic") -or
+	!$startupSmokeDryRun.Contains("Dry run complete; no examples were launched")) {
+	throw "Example startup smoke dry-run output was unexpected:`n$startupSmokeDryRun"
+}
 
 Write-Step "Checking example clean dry-runs"
 & (Join-Path $scriptRoot "test-clean-transcribe-example.ps1")

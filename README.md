@@ -104,6 +104,8 @@ scripts\test-whisper-transcribe.bat
 scripts\test-whisper-chunked-transcribe.bat
 scripts\test-whisper-transcribe.bat -DryRun
 scripts\test-whisper-chunked-transcribe.bat -DryRun
+scripts\test-example-startup.bat
+scripts\test-example-startup.bat -DryRun
 ```
 
 On macOS/Linux:
@@ -116,12 +118,16 @@ On macOS/Linux:
 ./scripts/test-whisper-chunked-transcribe.sh
 ./scripts/test-whisper-transcribe.sh -DryRun
 ./scripts/test-whisper-chunked-transcribe.sh -DryRun
+./scripts/test-example-startup.sh
+./scripts/test-example-startup.sh -DryRun
 ```
 
 The chunked smoke test runs the same sample WAV through
 `ofxGgmlAudioStreamChunker`, `ofxGgmlAudioWhisperBackend`, and
 `ofxGgmlAudioRollingTranscript`, then verifies text plus subtitle export. Use it
 when changing live-stream, overlap, or rolling transcript code.
+The example startup smoke launches the GUI examples long enough to catch
+startup crashes, then closes them.
 
 The first native transcription path is intentionally narrow: `transcribe()`
 accepts WAV files with 16-bit PCM or 32-bit float samples, mixes multi-channel
