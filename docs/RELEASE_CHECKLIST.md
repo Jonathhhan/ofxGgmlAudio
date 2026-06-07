@@ -57,6 +57,7 @@ scripts\doctor-audio.bat
 scripts\quickstart-transcribe-example.bat -DryRun
 scripts\quickstart-whisper-example.bat -DryRun
 scripts\quickstart-live-mic-example.bat -DryRun
+scripts\test-example-startup.bat -DryRun
 ```
 
 When the optional runtime and openFrameworks project files are available:
@@ -65,6 +66,7 @@ When the optional runtime and openFrameworks project files are available:
 scripts\quickstart-transcribe-example.bat
 scripts\quickstart-whisper-example.bat
 scripts\quickstart-live-mic-example.bat
+scripts\test-example-startup.bat -WaitSeconds 4
 ```
 
 ## Local Validation

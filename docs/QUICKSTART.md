@@ -207,6 +207,22 @@ macOS/Linux:
 ./scripts/test-whisper-chunked-transcribe.sh
 ```
 
+Use the GUI startup smoke after building examples when you want to catch early
+openFrameworks, logging, or ImGui crashes without manually driving each app. It
+launches the examples, waits briefly, then closes them:
+
+Windows:
+
+```powershell
+scripts\test-example-startup.bat -WaitSeconds 4
+```
+
+macOS/Linux:
+
+```sh
+./scripts/test-example-startup.sh -WaitSeconds 4
+```
+
 Before pushing changes:
 
 Windows:
