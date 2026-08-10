@@ -1,4 +1,5 @@
 param(
+	[switch]$AutoRun,
 	[switch]$Build,
 	[switch]$DryRun,
 	[string]$Configuration = "Release",
@@ -9,6 +10,7 @@ param(
 $scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 & (Join-Path $scriptRoot "run-transcribe-example.ps1") `
 	-Example live-mic `
+	-AutoRun:$AutoRun `
 	-Build:$Build `
 	-DryRun:$DryRun `
 	-Configuration $Configuration `

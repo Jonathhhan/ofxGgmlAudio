@@ -6,6 +6,9 @@ param(
 	[switch]$Clean,
 	[switch]$WithWhisper,
 	[switch]$DryRun,
+	[string]$OfRoot = "",
+	[string]$CoreRoot = "",
+	[string]$ImGuiRoot = "",
 	[int]$Jobs = 1
 )
 
@@ -468,7 +471,7 @@ function Get-CoreGgmlLibraryRelativeDirectory {
 	param([string]$CoreRoot)
 	foreach ($candidate in Get-CoreGgmlLibraryCandidates -CoreRoot $CoreRoot) {
 		if (Test-CoreGgmlLibraryDirectory -Path $candidate.Absolute) {
-			return $candidate.Relative
+			return $candidate.Absolute
 		}
 	}
 	return ""
@@ -578,16 +581,16 @@ function Repair-VisualStudioProjectFile {
 			$changed = $true
 		}
 		foreach ($includeDir in @(
-			"..\..\ofxGgmlCore\src",
-			"..\..\ofxGgmlCore\libs\ggml\include",
-			"..\..\ofxGgmlCore\libs\ggml\.source\include",
-			"..\..\ofxGgmlAudio\src",
-			"..\..\ofxGgmlAudio\libs\whisper\include",
-			"..\..\ofxImGui\src",
-			"..\..\ofxImGui\libs\imgui",
-			"..\..\ofxImGui\libs\imgui\src",
-			"..\..\ofxImGui\libs\imgui\backends",
-			"..\..\ofxImGui\libs\imgui\extras"
+			(Join-Path $CoreRoot "src"),
+			(Join-Path $CoreRoot "libs\ggml\include"),
+			(Join-Path $CoreRoot "libs\ggml\.source\include"),
+			(Join-Path $AudioRoot "src"),
+			(Join-Path $AudioRoot "libs\whisper\include"),
+			(Join-Path $ImguiRoot "src"),
+			(Join-Path $ImguiRoot "libs\imgui"),
+			(Join-Path $ImguiRoot "libs\imgui\src"),
+			(Join-Path $ImguiRoot "libs\imgui\backends"),
+			(Join-Path $ImguiRoot "libs\imgui\extras")
 		)) {
 			if (Add-IncludeDirectory -Doc $doc -Namespace $namespace -IncludeDir $includeDir) {
 				$changed = $true
@@ -614,7 +617,7 @@ function Repair-VisualStudioProjectFile {
 			if (Add-CompilerDefinition -Doc $doc -Namespace $namespace -Definition "OFXGGMLAUDIO_WITH_WHISPER") {
 				$changed = $true
 			}
-			if (Add-LinkerLibraryDirectory -Doc $doc -Namespace $namespace -LibraryDirectory "..\..\ofxGgmlAudio\libs\whisper\lib") {
+			if (Add-LinkerLibraryDirectory -Doc $doc -Namespace $namespace -LibraryDirectory (Join-Path $AudioRoot "libs\whisper\lib")) {
 				$changed = $true
 			}
 			if (Add-LinkerDependency -Doc $doc -Namespace $namespace -Dependency "whisper.lib") {
@@ -663,7 +666,11 @@ function Repair-VisualStudioProjectFile {
 
 $scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $addonRoot = Resolve-Path (Join-Path $scriptRoot "..")
-$ofRoot = Split-Path -Parent (Split-Path -Parent $addonRoot)
+$ofRoot = if ([string]::IsNullOrWhiteSpace($OfRoot)) {
+	Split-Path -Parent (Split-Path -Parent $addonRoot)
+} else {
+	(Resolve-Path -LiteralPath $OfRoot).Path
+}
 $exampleName = switch ($Example) {
 	"whisper" { "ofxGgmlAudioWhisperExample" }
 	"live-mic" { "ofxGgmlAudioLiveMicExample" }
@@ -677,8 +684,16 @@ $exampleLabel = switch ($Example) {
 $exampleRoot = Join-Path $addonRoot $exampleName
 $projectPath = Join-Path $exampleRoot "$exampleName.vcxproj"
 $addonsRoot = Split-Path -Parent $addonRoot
-$coreRoot = Join-Path $addonsRoot "ofxGgmlCore"
-$imguiRoot = Join-Path $addonsRoot "ofxImGui"
+$coreRoot = if ([string]::IsNullOrWhiteSpace($CoreRoot)) {
+	Join-Path $addonsRoot "ofxGgmlCore"
+} else {
+	(Resolve-Path -LiteralPath $CoreRoot).Path
+}
+$imguiRoot = if ([string]::IsNullOrWhiteSpace($ImGuiRoot)) {
+	Join-Path $addonsRoot "ofxImGui"
+} else {
+	(Resolve-Path -LiteralPath $ImGuiRoot).Path
+}
 
 if (!(Test-Path -LiteralPath $exampleRoot -PathType Container)) {
 	throw "Example directory was not found: $exampleRoot"

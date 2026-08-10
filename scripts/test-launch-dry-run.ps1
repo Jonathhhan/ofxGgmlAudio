@@ -133,6 +133,8 @@ $runOutput = & (Join-Path $scriptRoot "run-transcribe-example.ps1") `
 	-Threads 4 `
 	-Translate `
 	-NoTimestamps `
+	-Chunked `
+	-AutoRun `
 	-Configuration $Configuration `
 	-Platform $Platform *>&1 | ForEach-Object { $_.ToString() }
 if (!$?) {
@@ -144,6 +146,8 @@ Assert-Contains $runOutput "Language: en" "Launch dry-run"
 Assert-Contains $runOutput "Threads: 4" "Launch dry-run"
 Assert-Contains $runOutput "Translate: ON" "Launch dry-run"
 Assert-Contains $runOutput "Timestamps: OFF" "Launch dry-run"
+Assert-Contains $runOutput "Mode: chunked rolling transcript" "Launch dry-run"
+Assert-Contains $runOutput "Autorun: ON (exit after transcription)" "Launch dry-run"
 Assert-Contains $runOutput "Executable:" "Launch dry-run"
 Assert-Contains $runOutput $transcribeExeName "Launch dry-run"
 Assert-MissingExecutableHints $runOutput "Launch dry-run" "$(Get-PlatformScript -Name 'run-transcribe-example') -Build -WithWhisper" "$(Get-PlatformScript -Name 'quickstart-transcribe-example')"
@@ -176,6 +180,7 @@ Assert-NotContains $whisperRunOutput "Starting ofxGgmlAudioWhisperExample" "Whis
 Write-Step "Live mic example launch dry-run"
 $liveMicRunOutput = & (Join-Path $scriptRoot "run-live-mic-example.ps1") `
 	-DryRun `
+	-AutoRun `
 	-Configuration $Configuration `
 	-Platform $Platform *>&1 | ForEach-Object { $_.ToString() }
 if (!$?) {
@@ -183,6 +188,7 @@ if (!$?) {
 }
 Assert-Contains $liveMicRunOutput $liveMicExeName "Live mic launch dry-run"
 Assert-Contains $liveMicRunOutput "Executable:" "Live mic launch dry-run"
+Assert-Contains $liveMicRunOutput "Autorun: ON (exit after first captured chunk)" "Live mic launch dry-run"
 Assert-MissingExecutableHints $liveMicRunOutput "Live mic launch dry-run" "$(Get-PlatformScript -Name 'run-live-mic-example') -Build" "$(Get-PlatformScript -Name 'quickstart-live-mic-example')"
 Assert-NotContains $liveMicRunOutput "Using Whisper model" "Live mic launch dry-run"
 Assert-NotContains $liveMicRunOutput "Starting ofxGgmlAudioLiveMicExample" "Live mic launch dry-run"
@@ -190,9 +196,13 @@ Assert-NotContains $liveMicRunOutput "Starting ofxGgmlAudioLiveMicExample" "Live
 Write-Step "Transcribe example env flag dry-run"
 $previousTranslate = $env:OFXGGML_AUDIO_TRANSLATE
 $previousTimestamps = $env:OFXGGML_AUDIO_TIMESTAMPS
+$previousChunked = $env:OFXGGML_AUDIO_CHUNKED
+$previousAutoRun = $env:OFXGGML_AUDIO_AUTORUN
 try {
 	$env:OFXGGML_AUDIO_TRANSLATE = " yes "
 	$env:OFXGGML_AUDIO_TIMESTAMPS = " off "
+	$env:OFXGGML_AUDIO_CHUNKED = " yes "
+	$env:OFXGGML_AUDIO_AUTORUN = " on "
 	$envOutput = & (Join-Path $scriptRoot "run-transcribe-example.ps1") `
 		-DryRun `
 		-Model $modelPath `
@@ -208,6 +218,8 @@ try {
 	Assert-Contains $envOutput "Threads: 2" "Env flag dry-run"
 	Assert-Contains $envOutput "Translate: ON" "Env flag dry-run"
 	Assert-Contains $envOutput "Timestamps: OFF" "Env flag dry-run"
+	Assert-Contains $envOutput "Mode: chunked rolling transcript" "Env flag dry-run"
+	Assert-Contains $envOutput "Autorun: ON (exit after transcription)" "Env flag dry-run"
 	Assert-Contains $envOutput "Executable:" "Env flag dry-run"
 	Assert-Contains $envOutput $transcribeExeName "Env flag dry-run"
 	Assert-MissingExecutableHints $envOutput "Env flag dry-run" "$(Get-PlatformScript -Name 'run-transcribe-example') -Build -WithWhisper" "$(Get-PlatformScript -Name 'quickstart-transcribe-example')"
@@ -221,6 +233,16 @@ try {
 		Remove-Item Env:OFXGGML_AUDIO_TIMESTAMPS -ErrorAction SilentlyContinue
 	} else {
 		$env:OFXGGML_AUDIO_TIMESTAMPS = $previousTimestamps
+	}
+	if ($null -eq $previousChunked) {
+		Remove-Item Env:OFXGGML_AUDIO_CHUNKED -ErrorAction SilentlyContinue
+	} else {
+		$env:OFXGGML_AUDIO_CHUNKED = $previousChunked
+	}
+	if ($null -eq $previousAutoRun) {
+		Remove-Item Env:OFXGGML_AUDIO_AUTORUN -ErrorAction SilentlyContinue
+	} else {
+		$env:OFXGGML_AUDIO_AUTORUN = $previousAutoRun
 	}
 }
 

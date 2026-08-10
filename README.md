@@ -106,6 +106,8 @@ scripts\test-whisper-transcribe.bat -DryRun
 scripts\test-whisper-chunked-transcribe.bat -DryRun
 scripts\test-example-startup.bat
 scripts\test-example-startup.bat -DryRun
+scripts\run-transcribe-example.bat -AutoRun
+scripts\run-transcribe-example.bat -AutoRun -Chunked
 ```
 
 On macOS/Linux:
@@ -120,6 +122,8 @@ On macOS/Linux:
 ./scripts/test-whisper-chunked-transcribe.sh -DryRun
 ./scripts/test-example-startup.sh
 ./scripts/test-example-startup.sh -DryRun
+./scripts/run-transcribe-example.sh -AutoRun
+./scripts/run-transcribe-example.sh -AutoRun -Chunked
 ```
 
 The chunked smoke test runs the same sample WAV through
@@ -128,6 +132,9 @@ The chunked smoke test runs the same sample WAV through
 when changing live-stream, overlap, or rolling transcript code.
 The example startup smoke launches the GUI examples long enough to catch
 startup crashes, then closes them.
+The transcribe launcher `-AutoRun` mode executes the example's real file path
+without UI input and exits when inference finishes. Adding `-Chunked` executes
+the example's stream chunker and rolling transcript path instead.
 
 The first native transcription path is intentionally narrow: `transcribe()`
 accepts WAV files with 16-bit PCM or 32-bit float samples, mixes multi-channel
@@ -211,6 +218,7 @@ scripts\download-whisper-assets.bat
 scripts\run-transcribe-example.bat -Build -WithWhisper
 scripts\run-whisper-example.bat -Build -WithWhisper
 scripts\run-live-mic-example.bat -Build
+scripts\run-live-mic-example.bat -AutoRun
 ```
 
 On macOS/Linux:
@@ -221,6 +229,7 @@ On macOS/Linux:
 ./scripts/run-transcribe-example.sh -Build -WithWhisper
 ./scripts/run-whisper-example.sh -Build -WithWhisper
 ./scripts/run-live-mic-example.sh -Build
+./scripts/run-live-mic-example.sh -AutoRun
 ```
 
 ## Dependencies

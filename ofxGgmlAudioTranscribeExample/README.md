@@ -9,6 +9,22 @@ the WAV through overlapping stream windows and see the rolling transcript update
 after each chunk. Cancel stops between chunks and keeps the transcript produced
 so far.
 
+Run the actual example unattended with the same local model and WAV discovery
+used by the GUI launcher. `-AutoRun` starts transcription immediately and exits
+with a nonzero status on failure; add `-Chunked` to exercise the stream chunker
+and rolling transcript path. Successful timestamped runs write `.srt` and
+`.vtt` files next to the input WAV.
+
+```powershell
+..\scripts\run-transcribe-example.bat -AutoRun
+..\scripts\run-transcribe-example.bat -AutoRun -Chunked
+```
+
+```sh
+../scripts/run-transcribe-example.sh -AutoRun
+../scripts/run-transcribe-example.sh -AutoRun -Chunked
+```
+
 First run:
 
 Windows:

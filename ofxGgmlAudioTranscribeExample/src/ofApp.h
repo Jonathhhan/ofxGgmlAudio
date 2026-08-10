@@ -14,9 +14,11 @@
 class ofApp : public ofBaseApp {
 public:
 	void setup() override;
+	void update() override;
 	void draw() override;
 	void keyPressed(int key) override;
 	void exit() override;
+	int getExitCode() const;
 
 private:
 	void startTranscription();
@@ -50,6 +52,9 @@ private:
 	bool translate = false;
 	bool timestamps = true;
 	bool chunkedMode = false;
+	bool autoRun = false;
+	bool autoRunStarted = false;
+	std::atomic_int autoRunExitCode { 1 };
 	std::atomic_bool running { false };
 	std::atomic_bool cancelRequested { false };
 };

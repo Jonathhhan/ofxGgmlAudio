@@ -56,7 +56,9 @@ namespace {
 		return text.find(flag + " = 1") != std::string::npos ||
 			text.find(flag + "=1") != std::string::npos ||
 			text.find(flag + " : 1") != std::string::npos ||
-			text.find(flag + ":1") != std::string::npos;
+			text.find(flag + ":1") != std::string::npos ||
+			text.find(flag + " :") != std::string::npos ||
+			text.find(flag + ":") != std::string::npos;
 	}
 
 	std::string describeAcceleration(const std::string& systemInfo) {

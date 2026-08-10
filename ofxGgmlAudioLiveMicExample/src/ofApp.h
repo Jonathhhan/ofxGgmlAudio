@@ -16,6 +16,7 @@ public:
 	void keyPressed(int key) override;
 	void exit() override;
 	void audioIn(ofSoundBuffer & input) override;
+	int getExitCode() const;
 
 private:
 	void setupChunker();
@@ -49,6 +50,8 @@ private:
 	float chunkHopSeconds = 0.5f;
 	bool streamReady = false;
 	bool streamFailed = false;
+	bool autoRun = false;
+	int exitCode = 1;
 	std::atomic_bool captureEnabled { true };
 	std::string status;
 };

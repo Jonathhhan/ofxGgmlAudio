@@ -7,6 +7,8 @@ param(
 	[int]$Threads = $(if ($env:OFXGGML_AUDIO_THREADS) { [int]$env:OFXGGML_AUDIO_THREADS } else { 0 }),
 	[switch]$Translate,
 	[switch]$NoTimestamps,
+	[switch]$Chunked,
+	[switch]$AutoRun,
 	[switch]$Build,
 	[switch]$WithWhisper,
 	[switch]$DryRun,
@@ -129,6 +131,9 @@ if (!(Test-Path -LiteralPath $exampleExe -PathType Leaf)) {
 }
 
 if ($Example -eq "live-mic") {
+	$autoRunEnabled = $AutoRun.IsPresent -or (!$AutoRun.IsPresent -and (Test-EnabledFlag $env:OFXGGML_AUDIO_AUTORUN))
+	$env:OFXGGML_AUDIO_AUTORUN = if ($autoRunEnabled) { "1" } else { "0" }
+	Write-Step "Autorun: $(if ($autoRunEnabled) { 'ON (exit after first captured chunk)' } else { 'OFF' })"
 	if ($DryRun) {
 		Write-Step "Executable: $exampleExe"
 		return
@@ -198,11 +203,17 @@ if ($NoTimestamps.IsPresent) {
 
 $env:OFXGGML_AUDIO_TRANSLATE = if ($translateEnabled) { "1" } else { "0" }
 $env:OFXGGML_AUDIO_TIMESTAMPS = if ($timestampsEnabled) { "1" } else { "0" }
+$chunkedEnabled = $Chunked.IsPresent -or (!$Chunked.IsPresent -and (Test-EnabledFlag $env:OFXGGML_AUDIO_CHUNKED))
+$autoRunEnabled = $AutoRun.IsPresent -or (!$AutoRun.IsPresent -and (Test-EnabledFlag $env:OFXGGML_AUDIO_AUTORUN))
+$env:OFXGGML_AUDIO_CHUNKED = if ($chunkedEnabled) { "1" } else { "0" }
+$env:OFXGGML_AUDIO_AUTORUN = if ($autoRunEnabled) { "1" } else { "0" }
 
 Write-Step "Language: $Language"
 Write-Step "Threads: $Threads"
 Write-Step "Translate: $(if ($translateEnabled) { 'ON' } else { 'OFF' })"
 Write-Step "Timestamps: $(if ($timestampsEnabled) { 'ON' } else { 'OFF' })"
+Write-Step "Mode: $(if ($chunkedEnabled) { 'chunked rolling transcript' } else { 'file transcription' })"
+Write-Step "Autorun: $(if ($autoRunEnabled) { 'ON (exit after transcription)' } else { 'OFF' })"
 
 if ($DryRun) {
 	Write-Step "Executable: $exampleExe"

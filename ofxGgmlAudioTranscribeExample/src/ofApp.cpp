@@ -132,6 +132,8 @@ void ofApp::setup() {
 	const auto threadsFromEnv = trimText(envValue("OFXGGML_AUDIO_THREADS"));
 	const auto translateFromEnv = trimText(envValue("OFXGGML_AUDIO_TRANSLATE"));
 	const auto timestampsFromEnv = trimText(envValue("OFXGGML_AUDIO_TIMESTAMPS"));
+	const auto chunkedFromEnv = trimText(envValue("OFXGGML_AUDIO_CHUNKED"));
+	const auto autoRunFromEnv = trimText(envValue("OFXGGML_AUDIO_AUTORUN"));
 	copyToBuffer(modelPathBuffer, !modelFromEnv.empty() ? modelFromEnv : findFirstFile(
 		{ "models", "../models", "../../models", "bin/data/models", "bin/data" },
 		{ ".bin", ".gguf" }));
@@ -146,6 +148,8 @@ void ofApp::setup() {
 	if (!timestampsFromEnv.empty()) {
 		timestamps = !isDisabledFlag(timestampsFromEnv);
 	}
+	chunkedMode = isEnabledFlag(chunkedFromEnv);
+	autoRun = isEnabledFlag(autoRunFromEnv);
 
 	status = "idle";
 	runtimeInfo = backend.getRuntimeInfo();
@@ -153,6 +157,16 @@ void ofApp::setup() {
 		? "whisper.cpp native backend is available"
 		: "native backend disabled; run scripts/build-whisper.* and compile with OFXGGMLAUDIO_WITH_WHISPER";
 	ofLogNotice(LogModule) << detail;
+	if (autoRun) {
+		autoRunStarted = true;
+		startTranscription();
+	}
+}
+
+void ofApp::update() {
+	if (autoRun && autoRunStarted && !running.load()) {
+		ofExit(autoRunExitCode.load());
+	}
 }
 
 void ofApp::keyPressed(int key) {
@@ -169,6 +183,9 @@ void ofApp::exit() {
 
 void ofApp::draw() {
 	ofBackground(18);
+	if (autoRun) {
+		return;
+	}
 	const bool isRunning = running.load();
 	std::string statusSnapshot;
 	std::string detailSnapshot;
@@ -359,7 +376,12 @@ void ofApp::runWorker() {
 		status = wasCancelled ? "cancelled" : "complete";
 		detail = nextDetail;
 	}
+	autoRunExitCode.store(0);
 	running.store(false);
+}
+
+int ofApp::getExitCode() const {
+	return autoRun ? autoRunExitCode.load() : 0;
 }
 
 ofxGgmlAudioResult ofApp::runFileTranscription() {

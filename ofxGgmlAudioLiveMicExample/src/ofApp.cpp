@@ -3,10 +3,38 @@
 #include "imgui.h"
 
 #include <algorithm>
+#include <cctype>
 #include <cmath>
+#include <cstdlib>
+#include <string>
 
 namespace {
 	constexpr const char * LogModule = "ofxGgmlAudioLiveMicExample";
+	constexpr float AutoRunTimeoutSeconds = 10.0f;
+
+	bool autoRunEnabled() {
+		const char * value = std::getenv("OFXGGML_AUDIO_AUTORUN");
+		if (!value) {
+			return false;
+		}
+		std::string flag(value);
+		std::transform(flag.begin(), flag.end(), flag.begin(), [](unsigned char c) {
+			return static_cast<char>(std::tolower(c));
+		});
+		return flag == "1" || flag == "true" || flag == "on" || flag == "yes";
+	}
+
+	int chooseInputSampleRate(const ofSoundDevice & device, int preferredRate) {
+		if (std::find(device.sampleRates.begin(), device.sampleRates.end(), preferredRate) != device.sampleRates.end()) {
+			return preferredRate;
+		}
+		for (const unsigned int fallback : { 48000u, 44100u }) {
+			if (std::find(device.sampleRates.begin(), device.sampleRates.end(), fallback) != device.sampleRates.end()) {
+				return static_cast<int>(fallback);
+			}
+		}
+		return device.sampleRates.empty() ? preferredRate : static_cast<int>(device.sampleRates.front());
+	}
 
 	float computeRms(const std::vector<float> & samples) {
 		if (samples.empty()) {
@@ -32,13 +60,35 @@ namespace {
 void ofApp::setup() {
 	ofSetWindowTitle("ofxGgmlAudio live mic example");
 	gui.setup(nullptr, false);
+	autoRun = autoRunEnabled();
+
+	ofSoundStreamSettings settings;
+#ifdef TARGET_WIN32
+	const auto devices = stream.getDeviceList(ofSoundDevice::Api::MS_WASAPI);
+	const auto defaultInput = std::find_if(devices.begin(), devices.end(), [](const ofSoundDevice & device) {
+		return device.isDefaultInput && device.inputChannels > 0;
+	});
+	const auto firstInput = std::find_if(devices.begin(), devices.end(), [](const ofSoundDevice & device) {
+		return device.inputChannels > 0;
+	});
+	const auto selectedInput = defaultInput != devices.end() ? defaultInput : firstInput;
+	if (selectedInput != devices.end()) {
+		settings.setInDevice(*selectedInput);
+		sampleRate = chooseInputSampleRate(*selectedInput, sampleRate);
+		ofLogNotice(LogModule)
+			<< "input device: " << selectedInput->name
+			<< " (WASAPI, " << sampleRate << " Hz)";
+	} else {
+		settings.setApi(ofSoundDevice::Api::MS_WASAPI);
+		ofLogWarning(LogModule) << "no WASAPI input device was enumerated; trying the API default";
+	}
+#endif
 
 	chunkSettings.format.sampleRate = sampleRate;
 	chunkSettings.format.channels = channelCount;
 	chunkSettings.maxBufferedSeconds = 8.0;
 	setupChunker();
 
-	ofSoundStreamSettings settings;
 	settings.setInListener(this);
 	settings.sampleRate = sampleRate;
 	settings.numInputChannels = channelCount;
@@ -102,6 +152,17 @@ void ofApp::resetStats() {
 }
 
 void ofApp::update() {
+	if (autoRun && streamFailed) {
+		ofLogError(LogModule) << status;
+		ofExit(exitCode);
+		return;
+	}
+	if (autoRun && ofGetElapsedTimef() >= AutoRunTimeoutSeconds && chunkCount == 0) {
+		ofLogError(LogModule) << "autorun timed out before microphone samples produced a chunk";
+		ofExit(exitCode);
+		return;
+	}
+
 	std::vector<float> samples;
 	{
 		std::lock_guard<std::mutex> lock(audioMutex);
@@ -133,11 +194,26 @@ void ofApp::update() {
 			" peak=" + ofToString(latestFeatures.peak, 4) +
 			" vad=" + (latestVad.active ? "active" : "silent") +
 			" score=" + ofToString(latestVad.score, 3));
+		if (autoRun) {
+			ofLogNotice(LogModule)
+				<< "captured chunk " << chunkCount
+				<< ": frames=" << chunk.samples.size()
+				<< ", rms=" << ofToString(latestFeatures.rms, 4)
+				<< ", peak=" << ofToString(latestFeatures.peak, 4)
+				<< ", vad=" << (latestVad.active ? "active" : "silent")
+				<< ", score=" << ofToString(latestVad.score, 3);
+			exitCode = 0;
+			ofExit(exitCode);
+			return;
+		}
 	}
 }
 
 void ofApp::draw() {
 	ofBackground(18);
+	if (autoRun) {
+		return;
+	}
 	gui.begin();
 	ImGui::SetNextWindowPos(ImVec2(16.0f, 16.0f), ImGuiCond_Once);
 	ImGui::SetNextWindowSize(ImVec2(820.0f, 620.0f), ImGuiCond_Once);
@@ -245,6 +321,10 @@ void ofApp::audioIn(ofSoundBuffer & input) {
 
 	std::lock_guard<std::mutex> lock(audioMutex);
 	pendingSamples.insert(pendingSamples.end(), samples.begin(), samples.end());
+}
+
+int ofApp::getExitCode() const {
+	return autoRun ? exitCode : 0;
 }
 
 void ofApp::appendLogLine(const std::string & line) {

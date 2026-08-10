@@ -20,10 +20,22 @@ Build and launch it with:
 ..\scripts\quickstart-live-mic-example.bat
 ```
 
+For a bounded microphone smoke test, `-AutoRun` opens the selected input,
+waits for one real chunk, prints its frame count and diagnostics, then exits.
+It returns a nonzero status if no chunk arrives within ten seconds.
+
+```powershell
+..\scripts\run-live-mic-example.bat -AutoRun
+```
+
 On macOS/Linux:
 
 ```sh
 ../scripts/quickstart-live-mic-example.sh
+```
+
+```sh
+../scripts/run-live-mic-example.sh -AutoRun
 ```
 
 Use `-Jobs 0` on the quickstart or run script to use all logical cores while
