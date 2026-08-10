@@ -72,7 +72,6 @@ function Get-ExampleExecutableName {
 $scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $scratchDir = Join-Path ([System.IO.Path]::GetTempPath()) "ofxGgmlAudio-launch-dry-run"
 $transcribeExeName = Get-ExampleExecutableName -Name "ofxGgmlAudioTranscribeExample"
-$whisperExeName = Get-ExampleExecutableName -Name "ofxGgmlAudioWhisperExample"
 $liveMicExeName = Get-ExampleExecutableName -Name "ofxGgmlAudioLiveMicExample"
 New-Item -ItemType Directory -Force -Path $scratchDir | Out-Null
 $modelPath = Join-Path $scratchDir "dry-whisper-model.bin"
@@ -96,20 +95,6 @@ Assert-Contains $buildOutput "Transcribe example build plan" "Build dry-run"
 Assert-Contains $buildOutput "configuration: $Configuration" "Build dry-run"
 Assert-Contains $buildOutput "platform: $Platform" "Build dry-run"
 Assert-Contains $buildOutput "with whisper: OFF" "Build dry-run"
-
-Write-Step "Whisper example build dry-run"
-$whisperBuildOutput = & (Join-Path $scriptRoot "build-whisper-example.ps1") `
-	-DryRun `
-	-Configuration $Configuration `
-	-Platform $Platform `
-	-Jobs 3 *>&1 | ForEach-Object { $_.ToString() }
-if (!$?) {
-	throw "Whisper example build dry-run failed."
-}
-Assert-Contains $whisperBuildOutput "Whisper example build plan" "Whisper build dry-run"
-Assert-Contains $whisperBuildOutput "ofxGgmlAudioWhisperExample" "Whisper build dry-run"
-Assert-Contains $whisperBuildOutput "with whisper: OFF" "Whisper build dry-run"
-Assert-Contains $whisperBuildOutput "jobs: 3" "Whisper build dry-run"
 
 Write-Step "Live mic example build dry-run"
 $liveMicBuildOutput = & (Join-Path $scriptRoot "build-live-mic-example.ps1") `
@@ -152,30 +137,6 @@ Assert-Contains $runOutput "Executable:" "Launch dry-run"
 Assert-Contains $runOutput $transcribeExeName "Launch dry-run"
 Assert-MissingExecutableHints $runOutput "Launch dry-run" "$(Get-PlatformScript -Name 'run-transcribe-example') -Build -WithWhisper" "$(Get-PlatformScript -Name 'quickstart-transcribe-example')"
 Assert-NotContains $runOutput "Starting ofxGgmlAudioTranscribeExample" "Launch dry-run"
-
-Write-Step "Whisper example launch dry-run"
-$whisperRunOutput = & (Join-Path $scriptRoot "run-whisper-example.ps1") `
-	-DryRun `
-	-Model $modelPath `
-	-Audio $audioPath `
-	-Language "en" `
-	-Threads 4 `
-	-Translate `
-	-NoTimestamps `
-	-Configuration $Configuration `
-	-Platform $Platform *>&1 | ForEach-Object { $_.ToString() }
-if (!$?) {
-	throw "Whisper example launch dry-run failed."
-}
-Assert-Contains $whisperRunOutput "Using Whisper model: $modelPath" "Whisper launch dry-run"
-Assert-Contains $whisperRunOutput "Using audio file: $audioPath" "Whisper launch dry-run"
-Assert-Contains $whisperRunOutput "Language: en" "Whisper launch dry-run"
-Assert-Contains $whisperRunOutput "Threads: 4" "Whisper launch dry-run"
-Assert-Contains $whisperRunOutput "Translate: ON" "Whisper launch dry-run"
-Assert-Contains $whisperRunOutput "Timestamps: OFF" "Whisper launch dry-run"
-Assert-Contains $whisperRunOutput $whisperExeName "Whisper launch dry-run"
-Assert-MissingExecutableHints $whisperRunOutput "Whisper launch dry-run" "$(Get-PlatformScript -Name 'run-whisper-example') -Build -WithWhisper" "$(Get-PlatformScript -Name 'quickstart-whisper-example')"
-Assert-NotContains $whisperRunOutput "Starting ofxGgmlAudioWhisperExample" "Whisper launch dry-run"
 
 Write-Step "Live mic example launch dry-run"
 $liveMicRunOutput = & (Join-Path $scriptRoot "run-live-mic-example.ps1") `

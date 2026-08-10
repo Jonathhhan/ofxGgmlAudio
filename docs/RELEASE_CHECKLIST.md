@@ -55,7 +55,6 @@ Run the new-user path:
 ```powershell
 scripts\doctor-audio.bat
 scripts\quickstart-transcribe-example.bat -DryRun
-scripts\quickstart-whisper-example.bat -DryRun
 scripts\quickstart-live-mic-example.bat -DryRun
 scripts\test-example-startup.bat -DryRun
 ```
@@ -64,7 +63,6 @@ When the optional runtime and openFrameworks project files are available:
 
 ```powershell
 scripts\quickstart-transcribe-example.bat
-scripts\quickstart-whisper-example.bat
 scripts\quickstart-live-mic-example.bat
 scripts\test-example-startup.bat -WaitSeconds 4
 ```

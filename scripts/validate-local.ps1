@@ -89,8 +89,6 @@ Assert-FileContains (Join-Path $addonRoot "docs\RELEASE_CHECKLIST.md") "test-exa
 Assert-FileContains (Join-Path $addonRoot "ofxggml-addon.json") '"examples"' "addon metadata"
 Assert-FileContains (Join-Path $addonRoot "ofxggml-addon.json") "ofxGgmlAudioTranscribeExample" "addon metadata"
 Assert-FileContains (Join-Path $addonRoot "ofxggml-addon.json") "scripts/quickstart-transcribe-example" "addon metadata"
-Assert-FileContains (Join-Path $addonRoot "ofxggml-addon.json") "ofxGgmlAudioWhisperExample" "addon metadata"
-Assert-FileContains (Join-Path $addonRoot "ofxggml-addon.json") "scripts/quickstart-whisper-example" "addon metadata"
 Assert-FileContains (Join-Path $addonRoot "ofxggml-addon.json") "ofxGgmlAudioLiveMicExample" "addon metadata"
 Assert-FileContains (Join-Path $addonRoot "ofxggml-addon.json") "scripts/quickstart-live-mic-example" "addon metadata"
 Assert-Path (Join-Path $addonRoot "src\ofxGgmlAudio.h") "public header"
@@ -131,21 +129,6 @@ Assert-FileContains (Join-Path $transcribeExampleRoot "README.md") "..\\scripts\
 Assert-FileContains (Join-Path $transcribeExampleRoot "README.md") "../scripts/quickstart-transcribe-example.sh" "transcribe example README"
 Assert-FileContains (Join-Path $transcribeExampleRoot "README.md") "OFXGGML_AUDIO_MODEL" "transcribe example README"
 Assert-FileContains (Join-Path $transcribeExampleRoot "README.md") "-Jobs 0" "transcribe example README"
-
-$whisperExampleRoot = Join-Path $addonRoot "ofxGgmlAudioWhisperExample"
-Assert-Path $whisperExampleRoot "root-level Whisper example" -Directory
-Assert-Path (Join-Path $whisperExampleRoot "addons.make") "Whisper example addons.make"
-Assert-FileContains (Join-Path $whisperExampleRoot "addons.make") "(?m)^ofxImGui\s*$" "Whisper example addons.make"
-Assert-Path (Join-Path $whisperExampleRoot "src\main.cpp") "Whisper example main.cpp"
-Assert-Path (Join-Path $whisperExampleRoot "src\ofApp.h") "Whisper example ofApp.h"
-Assert-Path (Join-Path $whisperExampleRoot "src\ofApp.cpp") "Whisper example ofApp.cpp"
-Assert-FileContains (Join-Path $whisperExampleRoot "src\main.cpp") "ofLogToDebugView" "Whisper example Windows logger setup"
-Assert-FileContains (Join-Path $whisperExampleRoot "src\ofApp.cpp") "OFXGGML_AUDIO_EXAMPLE_LOG_MODULE" "Whisper example wrapper source"
-Assert-FileContains (Join-Path $whisperExampleRoot "src\ofApp.cpp") "ofxGgmlAudioWhisperExample" "Whisper example wrapper source"
-Assert-FileContains (Join-Path $whisperExampleRoot "README.md") "..\\scripts\\quickstart-whisper-example.bat" "Whisper example README"
-Assert-FileContains (Join-Path $whisperExampleRoot "README.md") "../scripts/quickstart-whisper-example.sh" "Whisper example README"
-Assert-FileContains (Join-Path $whisperExampleRoot "README.md") "OFXGGML_AUDIO_MODEL" "Whisper example README"
-Assert-FileContains (Join-Path $whisperExampleRoot "README.md") "-Jobs 0" "Whisper example README"
 
 $liveMicExampleRoot = Join-Path $addonRoot "ofxGgmlAudioLiveMicExample"
 Assert-Path $liveMicExampleRoot "root-level live mic example" -Directory
@@ -202,18 +185,12 @@ Assert-FileContains (Join-Path $scriptRoot "build-transcribe-example.ps1") "OFXI
 Assert-FileContains (Join-Path $scriptRoot "build-transcribe-example.ps1") "Remove-CompilerDefinition" "transcribe example build script stale ImGui flag cleanup"
 Assert-Path (Join-Path $scriptRoot "build-transcribe-example.bat") "transcribe example Windows build wrapper"
 Assert-Path (Join-Path $scriptRoot "build-transcribe-example.sh") "transcribe example shell build wrapper"
-Assert-Path (Join-Path $scriptRoot "build-whisper-example.ps1") "Whisper example build script"
-Assert-Path (Join-Path $scriptRoot "build-whisper-example.bat") "Whisper example Windows build wrapper"
-Assert-Path (Join-Path $scriptRoot "build-whisper-example.sh") "Whisper example shell build wrapper"
 Assert-Path (Join-Path $scriptRoot "build-live-mic-example.ps1") "live mic example build script"
 Assert-Path (Join-Path $scriptRoot "build-live-mic-example.bat") "live mic example Windows build wrapper"
 Assert-Path (Join-Path $scriptRoot "build-live-mic-example.sh") "live mic example shell build wrapper"
 Assert-Path (Join-Path $scriptRoot "clean-transcribe-example.ps1") "transcribe example clean script"
 Assert-Path (Join-Path $scriptRoot "clean-transcribe-example.bat") "transcribe example clean Windows wrapper"
 Assert-Path (Join-Path $scriptRoot "clean-transcribe-example.sh") "transcribe example clean shell wrapper"
-Assert-Path (Join-Path $scriptRoot "clean-whisper-example.ps1") "Whisper example clean script"
-Assert-Path (Join-Path $scriptRoot "clean-whisper-example.bat") "Whisper example clean Windows wrapper"
-Assert-Path (Join-Path $scriptRoot "clean-whisper-example.sh") "Whisper example clean shell wrapper"
 Assert-Path (Join-Path $scriptRoot "clean-live-mic-example.ps1") "live mic example clean script"
 Assert-Path (Join-Path $scriptRoot "clean-live-mic-example.bat") "live mic example clean Windows wrapper"
 Assert-Path (Join-Path $scriptRoot "clean-live-mic-example.sh") "live mic example clean shell wrapper"
@@ -223,18 +200,12 @@ Assert-Path (Join-Path $scriptRoot "test-clean-transcribe-example.sh") "example 
 Assert-Path (Join-Path $scriptRoot "run-transcribe-example.ps1") "transcribe example run script"
 Assert-Path (Join-Path $scriptRoot "run-transcribe-example.bat") "transcribe example Windows run wrapper"
 Assert-Path (Join-Path $scriptRoot "run-transcribe-example.sh") "transcribe example shell run wrapper"
-Assert-Path (Join-Path $scriptRoot "run-whisper-example.ps1") "Whisper example run script"
-Assert-Path (Join-Path $scriptRoot "run-whisper-example.bat") "Whisper example Windows run wrapper"
-Assert-Path (Join-Path $scriptRoot "run-whisper-example.sh") "Whisper example shell run wrapper"
 Assert-Path (Join-Path $scriptRoot "run-live-mic-example.ps1") "live mic example run script"
 Assert-Path (Join-Path $scriptRoot "run-live-mic-example.bat") "live mic example Windows run wrapper"
 Assert-Path (Join-Path $scriptRoot "run-live-mic-example.sh") "live mic example shell run wrapper"
 Assert-Path (Join-Path $scriptRoot "quickstart-transcribe-example.ps1") "transcribe quickstart script"
 Assert-Path (Join-Path $scriptRoot "quickstart-transcribe-example.bat") "transcribe quickstart Windows wrapper"
 Assert-Path (Join-Path $scriptRoot "quickstart-transcribe-example.sh") "transcribe quickstart shell wrapper"
-Assert-Path (Join-Path $scriptRoot "quickstart-whisper-example.ps1") "Whisper quickstart script"
-Assert-Path (Join-Path $scriptRoot "quickstart-whisper-example.bat") "Whisper quickstart Windows wrapper"
-Assert-Path (Join-Path $scriptRoot "quickstart-whisper-example.sh") "Whisper quickstart shell wrapper"
 Assert-Path (Join-Path $scriptRoot "quickstart-live-mic-example.ps1") "live mic quickstart script"
 Assert-Path (Join-Path $scriptRoot "quickstart-live-mic-example.bat") "live mic quickstart Windows wrapper"
 Assert-Path (Join-Path $scriptRoot "quickstart-live-mic-example.sh") "live mic quickstart shell wrapper"
@@ -267,9 +238,6 @@ $forbidden = @(
 	"ofxGgmlAudioTranscribeExample\bin",
 	"ofxGgmlAudioTranscribeExample\obj",
 	"ofxGgmlAudioTranscribeExample\.vs",
-	"ofxGgmlAudioWhisperExample\bin",
-	"ofxGgmlAudioWhisperExample\obj",
-	"ofxGgmlAudioWhisperExample\.vs",
 	"ofxGgmlAudioLiveMicExample\bin",
 	"ofxGgmlAudioLiveMicExample\obj",
 	"ofxGgmlAudioLiveMicExample\.vs",
@@ -327,7 +295,7 @@ Write-Step "Checking example launch dry-runs"
 Write-Step "Checking example startup smoke dry-run"
 $startupSmokeDryRun = & (Join-Path $scriptRoot "test-example-startup.ps1") -DryRun -WaitSeconds 2 2>&1 6>&1 | Out-String
 Assert-TextContains $startupSmokeDryRun "Audio example startup smoke plan" "Example startup smoke dry-run"
-Assert-TextContains $startupSmokeDryRun "examples: transcribe, whisper, live-mic" "Example startup smoke dry-run"
+Assert-TextContains $startupSmokeDryRun "examples: transcribe, live-mic" "Example startup smoke dry-run"
 Assert-TextContains $startupSmokeDryRun "Dry run complete; no examples were launched" "Example startup smoke dry-run"
 
 $startupSmokeMissingRoot = Join-Path ([System.IO.Path]::GetTempPath()) "ofxGgmlAudio-startup-smoke-missing"

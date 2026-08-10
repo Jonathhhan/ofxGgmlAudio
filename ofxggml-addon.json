@@ -29,11 +29,6 @@
       "quickstart": "scripts/quickstart-transcribe-example"
     },
     {
-      "name": "ofxGgmlAudioWhisperExample",
-      "task": "Explicit Whisper transcription workflow",
-      "quickstart": "scripts/quickstart-whisper-example"
-    },
-    {
       "name": "ofxGgmlAudioLiveMicExample",
       "task": "Live microphone chunking and baseline VAD diagnostics",
       "quickstart": "scripts/quickstart-live-mic-example"

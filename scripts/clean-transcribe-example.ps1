@@ -1,5 +1,5 @@
 param(
-	[ValidateSet("transcribe", "whisper", "live-mic")]
+	[ValidateSet("transcribe", "live-mic")]
 	[string]$Example = "transcribe",
 	[string]$ExampleRoot = "",
 	[switch]$DryRun
@@ -50,12 +50,10 @@ function Remove-GeneratedPath {
 $scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $addonRoot = Resolve-Path -LiteralPath (Join-Path $scriptRoot "..")
 $exampleName = switch ($Example) {
-	"whisper" { "ofxGgmlAudioWhisperExample" }
 	"live-mic" { "ofxGgmlAudioLiveMicExample" }
 	default { "ofxGgmlAudioTranscribeExample" }
 }
 $exampleLabel = switch ($Example) {
-	"whisper" { "Whisper" }
 	"live-mic" { "Live mic" }
 	default { "Transcribe" }
 }

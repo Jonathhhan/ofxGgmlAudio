@@ -1,5 +1,5 @@
 param(
-	[ValidateSet("transcribe", "whisper", "live-mic")]
+	[ValidateSet("transcribe", "live-mic")]
 	[string]$Example = "transcribe",
 	[string]$ModelName = "tiny.en",
 	[string]$ModelPath = "",
@@ -75,7 +75,6 @@ $downloadAssets = Join-Path $scriptRoot "download-whisper-assets.ps1"
 $buildExample = Join-Path $scriptRoot "build-transcribe-example.ps1"
 $runExample = Join-Path $scriptRoot "run-transcribe-example.ps1"
 $exampleLabel = switch ($Example) {
-	"whisper" { "Whisper" }
 	"live-mic" { "Live mic" }
 	default { "Transcribe" }
 }

@@ -13,11 +13,13 @@
   transcription, rolling transcript deduplication, and subtitle export together.
 - Added chunked rolling transcript mode to the transcribe example, including
   live chunk progress and between-chunk cancellation.
-- Added an explicit Whisper example wrapper plus live microphone diagnostics
-  with pause/resume, reset, VAD threshold controls, and RMS/VAD history plots.
-- Added per-example build, run, clean, and quickstart wrappers for transcribe,
-  Whisper, and live microphone workflows.
-- Added a GUI example startup smoke test for the transcribe, Whisper, and live
+- Consolidated the redundant Whisper wrapper into the canonical transcribe
+  example while preserving file, chunked, autorun, timestamp, and subtitle UX.
+- Added live microphone diagnostics with pause/resume, reset, VAD threshold
+  controls, and RMS/VAD history plots.
+- Added per-example build, run, clean, and quickstart wrappers for transcribe
+  and live microphone workflows.
+- Added a GUI example startup smoke test for the transcribe and live
   microphone examples, including dry-run coverage and platform-aware build
   hints.
 - Fixed Windows GUI example startup crashes by routing early example logging to

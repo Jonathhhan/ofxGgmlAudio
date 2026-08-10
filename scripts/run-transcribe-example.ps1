@@ -1,5 +1,5 @@
 param(
-	[ValidateSet("transcribe", "whisper", "live-mic")]
+	[ValidateSet("transcribe", "live-mic")]
 	[string]$Example = "transcribe",
 	[string]$Model = $env:OFXGGML_AUDIO_MODEL,
 	[string]$Audio = $env:OFXGGML_AUDIO_FILE,
@@ -76,22 +76,18 @@ function Get-PlatformScript {
 $scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $addonRoot = Resolve-Path (Join-Path $scriptRoot "..")
 $exampleName = switch ($Example) {
-	"whisper" { "ofxGgmlAudioWhisperExample" }
 	"live-mic" { "ofxGgmlAudioLiveMicExample" }
 	default { "ofxGgmlAudioTranscribeExample" }
 }
 $exampleLabel = switch ($Example) {
-	"whisper" { "Whisper" }
 	"live-mic" { "Live mic" }
 	default { "Transcribe" }
 }
 $runScriptName = switch ($Example) {
-	"whisper" { "run-whisper-example" }
 	"live-mic" { "run-live-mic-example" }
 	default { "run-transcribe-example" }
 }
 $quickstartScriptName = switch ($Example) {
-	"whisper" { "quickstart-whisper-example" }
 	"live-mic" { "quickstart-live-mic-example" }
 	default { "quickstart-transcribe-example" }
 }

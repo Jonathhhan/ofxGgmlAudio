@@ -1,5 +1,5 @@
 param(
-	[ValidateSet("all", "transcribe", "whisper", "live-mic")]
+	[ValidateSet("all", "transcribe", "live-mic")]
 	[string]$Example = "all",
 	[int]$WaitSeconds = 4,
 	[string]$Configuration = "Release",
@@ -39,7 +39,6 @@ function Get-BuildCommand {
 function Get-ExampleCases {
 	$all = @(
 		[pscustomobject]@{ Key = "transcribe"; Label = "Transcribe"; Name = "ofxGgmlAudioTranscribeExample"; RunScript = "run-transcribe-example"; WithWhisper = $true },
-		[pscustomobject]@{ Key = "whisper"; Label = "Whisper"; Name = "ofxGgmlAudioWhisperExample"; RunScript = "run-whisper-example"; WithWhisper = $true },
 		[pscustomobject]@{ Key = "live-mic"; Label = "Live mic"; Name = "ofxGgmlAudioLiveMicExample"; RunScript = "run-live-mic-example"; WithWhisper = $false }
 	)
 	if ($Example -eq "all") {

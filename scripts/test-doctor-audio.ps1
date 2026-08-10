@@ -52,7 +52,6 @@ Assert-Contains $output "Whisper runtime" "doctor report"
 Assert-Contains $output "Whisper model" "doctor report"
 Assert-Contains $output "WAV input" "doctor report"
 Assert-Contains $output "Transcribe example executable" "doctor report"
-Assert-Contains $output "Whisper example executable" "doctor report"
 Assert-Contains $output "Live mic example executable" "doctor report"
 Assert-Contains $output "Runtime notes" "doctor report"
 Assert-Contains $output "Threads controls CPU worker threads" "doctor report"
@@ -61,7 +60,6 @@ Assert-Contains $output "Live mic quickstart skips Whisper runtime" "doctor repo
 if ($exitCode -eq 0) {
 	Assert-Contains $output "Ready. Run:" "doctor ready report"
 	Assert-Contains $output "run-transcribe-example" "doctor ready report"
-	Assert-Contains $output "run-whisper-example" "doctor ready report"
 	Assert-Contains $output "run-live-mic-example" "doctor ready report"
 } else {
 	Assert-Contains $output "Next likely command:" "doctor incomplete report"

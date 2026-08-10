@@ -5,7 +5,7 @@ Live microphone stream example for `ofxGgmlAudio`.
 This example captures mono microphone input with `ofSoundStream`, pushes it
 through `ofxGgmlAudioStreamChunker`, and displays deterministic audio features
 plus the baseline voice-activity estimate. It does not claim model-backed
-transcription; use the Whisper examples for file and chunked Whisper runtime
+transcription; use the transcribe example for file and chunked Whisper runtime
 validation.
 
 The UI includes live input meters, RMS/VAD history plots, adjustable chunk

@@ -148,12 +148,11 @@ segments into subtitle files.
 
 ## Example
 
-`ofxGgmlAudioWhisperExample` is the explicit root-level Whisper example. It has
-editable model/audio paths, language, threads, translation, timestamps, chunked
-rolling transcript mode, and `ofLog` output. `ofxGgmlAudioTranscribeExample`
-keeps the same backend path under the older transcribe example name. When
-timestamped segments are available, the shared example UI writes `.srt` and
-`.vtt` subtitles next to the input WAV. Generate either example with the
+`ofxGgmlAudioTranscribeExample` is the canonical file and chunked Whisper
+example. It has editable model/audio paths, language, threads, translation,
+timestamps, chunked rolling transcript mode, autorun coverage, and `ofLog`
+output. When timestamped segments are available, the example UI writes `.srt`
+and `.vtt` subtitles next to the input WAV. Generate it with the
 openFrameworks projectGenerator using addons `ofxGgmlAudio`, `ofxGgmlCore`, and
 `ofxImGui`.
 
@@ -161,7 +160,7 @@ openFrameworks projectGenerator using addons `ofxGgmlAudio`, `ofxGgmlCore`, and
 It captures mono mic input, feeds `ofxGgmlAudioStreamChunker`, and displays
 RMS/peak/zero-crossing features plus the deterministic voice-activity baseline.
 It intentionally does not claim model-backed live transcription yet; use the
-Whisper examples for model-backed file and chunked transcription evidence.
+transcribe example for model-backed file and chunked transcription evidence.
 Use `scripts\quickstart-live-mic-example.bat` or
 `./scripts/quickstart-live-mic-example.sh` to build and launch it.
 
@@ -180,9 +179,6 @@ First run:
 ```powershell
 scripts\doctor-audio.bat
 scripts\run-audio-runtime-smoke.bat -DryRun
-scripts\build-whisper-example.bat -WithWhisper
-scripts\run-whisper-example.bat
-scripts\quickstart-whisper-example.bat -DryRun
 scripts\quickstart-live-mic-example.bat -DryRun
 scripts\quickstart-live-mic-example.bat
 scripts\clean-live-mic-example.bat -DryRun
@@ -194,7 +190,6 @@ On macOS/Linux:
 
 ```sh
 ./scripts/doctor-audio.sh
-./scripts/quickstart-whisper-example.sh -DryRun
 ./scripts/quickstart-live-mic-example.sh -DryRun
 ./scripts/quickstart-live-mic-example.sh
 ./scripts/clean-live-mic-example.sh -DryRun
@@ -205,8 +200,8 @@ On macOS/Linux:
 `doctor-audio` prints the current setup state and the next likely command when
 something is missing. The quickstart reuses an installed Whisper runtime when
 present, downloads the default tiny model and sample WAV, builds the
-openFrameworks Whisper examples with `-WithWhisper`, then launches the selected
-example. The live mic quickstart skips Whisper runtime and asset setup. Use
+openFrameworks transcribe example with `-WithWhisper`, then launches it. The
+live mic quickstart skips Whisper runtime and asset setup. Use
 `-ForceRuntime` to rebuild the optional runtime. Add `-Jobs 0` to example
 quickstarts or run scripts to use all logical cores for the example build, or a
 positive value such as `-Jobs 4` for a fixed job count. For manual control, run
@@ -216,7 +211,6 @@ the lower-level scripts directly:
 scripts\build-whisper.bat
 scripts\download-whisper-assets.bat
 scripts\run-transcribe-example.bat -Build -WithWhisper
-scripts\run-whisper-example.bat -Build -WithWhisper
 scripts\run-live-mic-example.bat -Build
 scripts\run-live-mic-example.bat -AutoRun
 ```
@@ -227,7 +221,6 @@ On macOS/Linux:
 ./scripts/build-whisper.sh
 ./scripts/download-whisper-assets.sh
 ./scripts/run-transcribe-example.sh -Build -WithWhisper
-./scripts/run-whisper-example.sh -Build -WithWhisper
 ./scripts/run-live-mic-example.sh -Build
 ./scripts/run-live-mic-example.sh -AutoRun
 ```

@@ -1,5 +1,5 @@
 param(
-	[ValidateSet("transcribe", "whisper", "live-mic")]
+	[ValidateSet("transcribe", "live-mic")]
 	[string]$Example = "transcribe",
 	[string]$Configuration = "Release",
 	[string]$Platform = "x64",
@@ -672,12 +672,10 @@ $ofRoot = if ([string]::IsNullOrWhiteSpace($OfRoot)) {
 	(Resolve-Path -LiteralPath $OfRoot).Path
 }
 $exampleName = switch ($Example) {
-	"whisper" { "ofxGgmlAudioWhisperExample" }
 	"live-mic" { "ofxGgmlAudioLiveMicExample" }
 	default { "ofxGgmlAudioTranscribeExample" }
 }
 $exampleLabel = switch ($Example) {
-	"whisper" { "Whisper" }
 	"live-mic" { "Live mic" }
 	default { "Transcribe" }
 }

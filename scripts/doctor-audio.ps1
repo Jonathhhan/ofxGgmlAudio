@@ -174,7 +174,6 @@ $ofRoot = Split-Path -Parent $addonsRoot
 $coreRoot = Join-Path $addonsRoot "ofxGgmlCore"
 $imguiRoot = Join-Path $addonsRoot "ofxImGui"
 $transcribeExampleRoot = Join-Path $addonRoot "ofxGgmlAudioTranscribeExample"
-$whisperExampleRoot = Join-Path $addonRoot "ofxGgmlAudioWhisperExample"
 $liveMicExampleRoot = Join-Path $addonRoot "ofxGgmlAudioLiveMicExample"
 $modelPath = Join-Path $addonRoot "models\ggml-$ModelName.bin"
 $audioPath = Join-Path $addonRoot "audio\jfk.wav"
@@ -182,11 +181,6 @@ $transcribeExe = if (Test-WindowsHost) {
 	Join-Path $transcribeExampleRoot "bin\ofxGgmlAudioTranscribeExample.exe"
 } else {
 	Join-Path $transcribeExampleRoot "bin/ofxGgmlAudioTranscribeExample"
-}
-$whisperExe = if (Test-WindowsHost) {
-	Join-Path $whisperExampleRoot "bin\ofxGgmlAudioWhisperExample.exe"
-} else {
-	Join-Path $whisperExampleRoot "bin/ofxGgmlAudioWhisperExample"
 }
 $liveMicExe = if (Test-WindowsHost) {
 	Join-Path $liveMicExampleRoot "bin\ofxGgmlAudioLiveMicExample.exe"
@@ -197,13 +191,10 @@ $coreSetupCommand = "$(Get-PlatformSiblingScript -AddonName 'ofxGgmlCore' -Name 
 $buildWhisperCommand = Get-PlatformScript -Name "build-whisper"
 $downloadAssetsCommand = Get-PlatformScript -Name "download-whisper-assets"
 $transcribeQuickstartCommand = Get-PlatformScript -Name "quickstart-transcribe-example"
-$whisperQuickstartCommand = Get-PlatformScript -Name "quickstart-whisper-example"
 $liveMicQuickstartCommand = Get-PlatformScript -Name "quickstart-live-mic-example"
 $transcribeRunBuildCommand = "$(Get-PlatformScript -Name 'run-transcribe-example') -Build -WithWhisper"
-$whisperRunBuildCommand = "$(Get-PlatformScript -Name 'run-whisper-example') -Build -WithWhisper"
 $liveMicRunBuildCommand = "$(Get-PlatformScript -Name 'run-live-mic-example') -Build"
 $transcribeRunCommand = Get-PlatformScript -Name "run-transcribe-example"
-$whisperRunCommand = Get-PlatformScript -Name "run-whisper-example"
 $liveMicRunCommand = Get-PlatformScript -Name "run-live-mic-example"
 $validateCommand = Get-PlatformScript -Name "validate-local"
 
@@ -237,7 +228,6 @@ $audioReady = (Test-Path -LiteralPath $audioPath -PathType Leaf) -or
 Add-Check $checks "WAV input" $audioReady $audioPath $downloadAssetsCommand
 
 Add-Check $checks "Transcribe example executable" (Test-Path -LiteralPath $transcribeExe -PathType Leaf) $transcribeExe $transcribeRunBuildCommand
-Add-Check $checks "Whisper example executable" (Test-Path -LiteralPath $whisperExe -PathType Leaf) $whisperExe $whisperRunBuildCommand
 Add-Check $checks "Live mic example executable" (Test-Path -LiteralPath $liveMicExe -PathType Leaf) $liveMicExe $liveMicRunBuildCommand
 
 Write-Host "ofxGgmlAudio doctor"
@@ -255,7 +245,7 @@ $accelerators = @(Get-CoreGgmlAccelerators -CoreRoot $coreRoot)
 $acceleratorText = if ($accelerators.Count -gt 0) { $accelerators -join ", " } else { "none detected" }
 Write-Host ""
 Write-Host "Runtime notes"
-Write-Host "  Whisper example Threads controls CPU worker threads only."
+Write-Host "  Transcribe example Threads controls CPU worker threads only."
 Write-Host "  Core ggml accelerator candidates: $acceleratorText"
 Write-Host "  Actual Whisper GPU use depends on how whisper.cpp was built and is reported in the example Runtime panel."
 Write-Host "  Live mic quickstart skips Whisper runtime and sample asset setup."
@@ -265,7 +255,6 @@ Write-Host ""
 if ($missing.Count -eq 0) {
 	Write-Host "Ready. Run:"
 	Write-Host "  $transcribeRunCommand"
-	Write-Host "  $whisperRunCommand"
 	Write-Host "  $liveMicRunCommand"
 	exit 0
 }
@@ -277,8 +266,6 @@ if (!$coreGgmlReady) {
 	Write-Host "  $liveMicQuickstartCommand"
 } elseif (!$whisperReady -or !$modelReady -or !$audioReady -or !(Test-Path -LiteralPath $transcribeExe -PathType Leaf)) {
 	Write-Host "  $transcribeQuickstartCommand"
-} elseif (!(Test-Path -LiteralPath $whisperExe -PathType Leaf)) {
-	Write-Host "  $whisperQuickstartCommand"
 } else {
 	Write-Host "  $validateCommand"
 }

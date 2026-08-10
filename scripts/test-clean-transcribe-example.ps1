@@ -47,7 +47,6 @@ if (Test-Path -LiteralPath $scratchRoot) {
 try {
 	foreach ($case in @(
 		@{ Example = "transcribe"; Label = "Transcribe"; Name = "ofxGgmlAudioTranscribeExample"; Wrapper = "" },
-		@{ Example = "whisper"; Label = "Whisper"; Name = "ofxGgmlAudioWhisperExample"; Wrapper = "clean-whisper-example.ps1" },
 		@{ Example = "live-mic"; Label = "Live mic"; Name = "ofxGgmlAudioLiveMicExample"; Wrapper = "clean-live-mic-example.ps1" }
 	)) {
 		$exampleRoot = Join-Path $scratchRoot $case.Name

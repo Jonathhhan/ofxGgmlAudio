@@ -2,7 +2,7 @@
 
 This is the boring path for a fresh `ofxGgmlAudio` checkout: clone the addon,
 check the environment, build the optional Whisper runtime when needed, download
-a tiny model and sample WAV for Whisper examples, then run an example.
+a tiny model and sample WAV for the transcribe example, then run an example.
 
 ## 1. Folder Layout
 
@@ -41,7 +41,7 @@ cd ofxGgmlAudio
 
 Run the doctor first. It prints each required piece and the next likely command
 if something is missing. The report covers the Whisper runtime/assets, the
-transcribe and Whisper examples, and the lightweight live mic example.
+canonical transcribe example, and the lightweight live mic example.
 
 Windows:
 
@@ -84,7 +84,6 @@ Windows:
 
 ```powershell
 scripts\quickstart-transcribe-example.bat
-scripts\quickstart-whisper-example.bat
 scripts\quickstart-live-mic-example.bat
 ```
 
@@ -92,7 +91,6 @@ macOS/Linux:
 
 ```sh
 ./scripts/quickstart-transcribe-example.sh
-./scripts/quickstart-whisper-example.sh
 ./scripts/quickstart-live-mic-example.sh
 ```
 
@@ -100,13 +98,11 @@ To see the plan without changing files:
 
 ```powershell
 scripts\quickstart-transcribe-example.bat -DryRun
-scripts\quickstart-whisper-example.bat -DryRun
 scripts\quickstart-live-mic-example.bat -DryRun
 ```
 
 ```sh
 ./scripts/quickstart-transcribe-example.sh -DryRun
-./scripts/quickstart-whisper-example.sh -DryRun
 ./scripts/quickstart-live-mic-example.sh -DryRun
 ```
 
@@ -117,12 +113,12 @@ Pass `-Jobs 0` to use all logical cores for the example build, or pass a
 positive number such as `-Jobs 4` to choose a fixed MSBuild job count:
 
 ```powershell
-scripts\quickstart-whisper-example.bat -Jobs 0
+scripts\quickstart-transcribe-example.bat -Jobs 0
 scripts\quickstart-live-mic-example.bat -Jobs 4
 ```
 
 ```sh
-./scripts/quickstart-whisper-example.sh -Jobs 0
+./scripts/quickstart-transcribe-example.sh -Jobs 0
 ./scripts/quickstart-live-mic-example.sh -Jobs 4
 ```
 
@@ -136,7 +132,6 @@ Windows:
 scripts\build-whisper.bat
 scripts\download-whisper-assets.bat
 scripts\run-transcribe-example.bat -Build -WithWhisper
-scripts\run-whisper-example.bat -Build -WithWhisper
 scripts\run-live-mic-example.bat -Build
 ```
 
@@ -146,7 +141,6 @@ macOS/Linux:
 ./scripts/build-whisper.sh
 ./scripts/download-whisper-assets.sh
 ./scripts/run-transcribe-example.sh -Build -WithWhisper
-./scripts/run-whisper-example.sh -Build -WithWhisper
 ./scripts/run-live-mic-example.sh -Build
 ```
 
@@ -242,13 +236,11 @@ examples after local builds:
 
 ```powershell
 scripts\clean-transcribe-example.bat
-scripts\clean-whisper-example.bat
 scripts\clean-live-mic-example.bat
 ```
 
 ```sh
 ./scripts/clean-transcribe-example.sh
-./scripts/clean-whisper-example.sh
 ./scripts/clean-live-mic-example.sh
 ```
 
