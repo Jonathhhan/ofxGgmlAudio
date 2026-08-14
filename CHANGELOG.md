@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Pinned whisper.cpp runtime builds to upstream `v1.9.2` and made existing
+  generated source checkouts update to that revision without overwriting local
+  source changes.
+- Added a strict `-RequireGpu` runtime-smoke gate and records the runtime's GPU
+  request, availability, and selected acceleration in smoke evidence.
+- Install only the built Whisper header, library, and runtime instead of
+  requiring unrelated upstream Parakeet artifacts.
 - Added an optional headless Whisper transcription smoke test for verifying the
   generated runtime, model, sample WAV, and native backend without launching the
   openFrameworks example.

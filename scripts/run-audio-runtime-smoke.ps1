@@ -10,7 +10,8 @@ param(
 	[switch]$Clean,
 	[switch]$DryRun,
 	[switch]$Json,
-	[switch]$SummaryOnly
+	[switch]$SummaryOnly,
+	[switch]$RequireGpu
 )
 
 $ErrorActionPreference = "Stop"
@@ -146,6 +147,26 @@ function Invoke-SmokeScript {
 	}
 }
 
+function Get-RuntimeAcceleration {
+	param([object[]]$Results)
+	foreach ($result in @($Results)) {
+		foreach ($line in @($result.Output)) {
+			if ([string]$line -match '^OFXGGML_AUDIO_RUNTIME\s+gpu_requested=(\d+)\s+gpu_available=(\d+)\s+acceleration=(.+)$') {
+				return [pscustomobject]@{
+					GpuRequested = $Matches[1] -eq "1"
+					GpuAvailable = $Matches[2] -eq "1"
+					Acceleration = $Matches[3].Trim()
+				}
+			}
+		}
+	}
+	return [pscustomobject]@{
+		GpuRequested = $false
+		GpuAvailable = $false
+		Acceleration = "unreported"
+	}
+}
+
 $resolvedModel = Resolve-SmokePath -Path $Model -Fallback (Join-Path $addonRoot "models\ggml-tiny.en.bin")
 $resolvedAudio = Resolve-SmokePath -Path $Audio -Fallback (Join-Path $addonRoot "audio\jfk.wav")
 if ([string]::IsNullOrWhiteSpace($BuildDir)) {
@@ -226,14 +247,30 @@ foreach ($modeName in $modes) {
 $resultArray = @($results.ToArray())
 $failedArray = @($resultArray | Where-Object { -not $_.Passed })
 $elapsedTotal = [double](($resultArray | Measure-Object -Property ElapsedMs -Sum).Sum)
-$passed = $failedArray.Count -eq 0
+$runtimeAcceleration = Get-RuntimeAcceleration -Results $resultArray
+$gpuRequirementPassed = !$RequireGpu -or (
+	$runtimeAcceleration.GpuRequested -and
+	$runtimeAcceleration.GpuAvailable -and
+	$runtimeAcceleration.Acceleration -match '(?i)CUDA')
+$passed = $failedArray.Count -eq 0 -and $gpuRequirementPassed
+$errorDetail = if ($failedArray.Count -gt 0) {
+	"one or more audio runtime smokes failed"
+} elseif (!$gpuRequirementPassed) {
+	"GPU was required but the runtime reported requested=$($runtimeAcceleration.GpuRequested), available=$($runtimeAcceleration.GpuAvailable), acceleration=$($runtimeAcceleration.Acceleration)."
+} else {
+	""
+}
 $summary = @{
 	SummaryOnly = [bool]$SummaryOnly
 	Summary = @{
 		Passed = [bool]$passed
-		InferenceChecked = [bool]$passed
+		InferenceChecked = [bool]($failedArray.Count -eq 0)
 		SmokeKind = "model-backed-whisper-transcription"
 		Backend = "whisper.cpp"
+		GpuRequired = [bool]$RequireGpu
+		GpuRequested = [bool]$runtimeAcceleration.GpuRequested
+		GpuAvailable = [bool]$runtimeAcceleration.GpuAvailable
+		Acceleration = [string]$runtimeAcceleration.Acceleration
 		Mode = $Mode
 		ModelPath = $resolvedModel
 		AudioPath = $resolvedAudio
@@ -241,7 +278,7 @@ $summary = @{
 		ResultCount = $resultArray.Count
 		FailedCount = $failedArray.Count
 		ElapsedMs = [Math]::Round($elapsedTotal, 3)
-		Error = if ($passed) { "" } else { "one or more audio runtime smokes failed" }
+		Error = $errorDetail
 	}
 }
 if (-not $SummaryOnly) {

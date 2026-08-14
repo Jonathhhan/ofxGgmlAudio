@@ -1,6 +1,6 @@
 param(
 	[string]$Repo = "https://github.com/ggml-org/whisper.cpp.git",
-	[string]$Revision = "master",
+	[string]$Revision = "v1.9.2",
 	[string]$Configuration = "Release",
 	[string]$Generator = "",
 	[int]$Jobs = 0,
@@ -111,6 +111,50 @@ function Invoke-Checked {
 	}
 }
 
+function Get-GitOutput {
+	param(
+		[string]$Source,
+		[string[]]$Arguments,
+		[string]$Step
+	)
+	$output = & git -C $Source @Arguments 2>&1
+	if ($LASTEXITCODE -ne 0) {
+		throw "$Step failed with exit code $LASTEXITCODE`n$($output -join [Environment]::NewLine)"
+	}
+	return (($output | ForEach-Object { [string]$_ }) -join [Environment]::NewLine).Trim()
+}
+
+function Test-SourceRevisionMatches {
+	param(
+		[string]$Source,
+		[string]$Revision
+	)
+	$tags = Get-GitOutput -Source $Source -Arguments @("tag", "--points-at", "HEAD") -Step "git inspect whisper.cpp revision"
+	return @($tags -split "\r?\n") -contains $Revision
+}
+
+function Update-WhisperSource {
+	param(
+		[string]$Source,
+		[string]$Revision
+	)
+	if (Test-SourceRevisionMatches -Source $Source -Revision $Revision) {
+		Write-Step "whisper.cpp source already at $Revision; skipping fetch"
+		return
+	}
+	$dirty = Get-GitOutput -Source $Source -Arguments @("status", "--porcelain") -Step "git status whisper.cpp"
+	if (![string]::IsNullOrWhiteSpace($dirty)) {
+		throw "whisper.cpp source has local changes and cannot be updated safely: $Source"
+	}
+	Write-Step "Fetching whisper.cpp $Revision"
+	$isVersionTag = $Revision -match "^v[0-9]"
+	$fetchRevision = if ($isVersionTag) { "refs/tags/${Revision}:refs/tags/${Revision}" } else { $Revision }
+	$checkoutRevision = if ($isVersionTag) { $Revision } else { "FETCH_HEAD" }
+	Invoke-Checked "git fetch whisper.cpp" "git" @("-C", $Source, "fetch", "--depth", "1", "origin", $fetchRevision)
+	Invoke-Checked "git checkout whisper.cpp" "git" @("-C", $Source, "checkout", "--detach", $checkoutRevision)
+	Invoke-Checked "git update whisper.cpp submodules" "git" @("-C", $Source, "submodule", "update", "--init", "--recursive", "--depth", "1")
+}
+
 function Convert-ToOnOff {
 	param([bool]$Value)
 	if ($Value) { return "ON" }
@@ -176,9 +220,10 @@ function Join-FileNames {
 function Clear-InstalledWhisperArtifacts {
 	param([string]$InstallDir)
 	$targets = @(
-		@{ Dir = Join-Path $InstallDir "bin"; Patterns = @("whisper*.dll", "whisper*.so", "libwhisper*.so", "libwhisper*.dylib") },
-		@{ Dir = Join-Path $InstallDir "lib"; Patterns = @("whisper*.lib", "libwhisper*.a", "libwhisper*.dylib") },
-		@{ Dir = Join-Path $InstallDir "include"; Patterns = @("whisper.h") }
+		@{ Dir = Join-Path $InstallDir "bin"; Patterns = @("whisper*.dll", "whisper*.so", "libwhisper*.so", "libwhisper*.dylib", "parakeet*.dll", "libparakeet*.so", "libparakeet*.dylib") },
+		@{ Dir = Join-Path $InstallDir "lib"; Patterns = @("whisper*.lib", "libwhisper*.a", "libwhisper*.dylib", "parakeet*.lib", "libparakeet*.a", "libparakeet*.dylib") },
+		@{ Dir = Join-Path $InstallDir "include"; Patterns = @("whisper.h", "parakeet.h") },
+		@{ Dir = Join-Path $InstallDir "lib\pkgconfig"; Patterns = @("whisper.pc", "parakeet.pc") }
 	)
 	foreach ($target in $targets) {
 		foreach ($pattern in $target.Patterns) {
@@ -191,6 +236,65 @@ function Clear-InstalledWhisperArtifacts {
 			}
 		}
 	}
+	foreach ($directory in @(
+		(Join-Path $InstallDir "lib\cmake\whisper"),
+		(Join-Path $InstallDir "lib\cmake\parakeet")
+	)) {
+		if (Test-Path -LiteralPath $directory -PathType Container) {
+			Remove-Item -LiteralPath $directory -Recurse -Force
+		}
+	}
+}
+
+function Find-BuiltWhisperArtifact {
+	param(
+		[string]$BuildDir,
+		[string[]]$Names
+	)
+	foreach ($name in $Names) {
+		$match = Get-ChildItem -LiteralPath $BuildDir -Recurse -File -Filter $name -ErrorAction SilentlyContinue |
+			Sort-Object LastWriteTime -Descending |
+			Select-Object -First 1
+		if ($match) {
+			return $match.FullName
+		}
+	}
+	return ""
+}
+
+function Install-WhisperRuntime {
+	param(
+		[string]$BuildDir,
+		[string]$SourceDir,
+		[string]$InstallDir
+	)
+	$includeDir = Join-Path $InstallDir "include"
+	$libraryDir = Join-Path $InstallDir "lib"
+	$binaryDir = Join-Path $InstallDir "bin"
+	New-Item -ItemType Directory -Path $includeDir,$libraryDir,$binaryDir -Force | Out-Null
+
+	$header = Join-Path $SourceDir "include\whisper.h"
+	if (!(Test-Path -LiteralPath $header -PathType Leaf)) {
+		throw "Built whisper.cpp header was not found: $header"
+	}
+	Copy-Item -LiteralPath $header -Destination (Join-Path $includeDir "whisper.h") -Force
+
+	if (Test-WindowsHost) {
+		$library = Find-BuiltWhisperArtifact -BuildDir $BuildDir -Names @("whisper.lib")
+		$runtime = Find-BuiltWhisperArtifact -BuildDir $BuildDir -Names @("whisper.dll")
+		if ([string]::IsNullOrWhiteSpace($library) -or [string]::IsNullOrWhiteSpace($runtime)) {
+			throw "Built whisper.cpp Windows artifacts were not found under: $BuildDir"
+		}
+		Copy-Item -LiteralPath $library -Destination (Join-Path $libraryDir "whisper.lib") -Force
+		Copy-Item -LiteralPath $runtime -Destination (Join-Path $binaryDir "whisper.dll") -Force
+		return
+	}
+
+	$library = Find-BuiltWhisperArtifact -BuildDir $BuildDir -Names @("libwhisper.a", "libwhisper.dylib", "libwhisper.so")
+	if ([string]::IsNullOrWhiteSpace($library)) {
+		throw "Built whisper.cpp library was not found under: $BuildDir"
+	}
+	Copy-Item -LiteralPath $library -Destination (Join-Path $libraryDir ([System.IO.Path]::GetFileName($library))) -Force
 }
 
 function Write-WhisperBackendReport {
@@ -461,7 +565,7 @@ if ($DryRun) {
 	Write-Host "  clean: $(Convert-ToOnOff $Clean)"
 	Write-Host "cmake $($cmakeConfigure -join ' ')"
 	Write-Host "cmake --build $BuildDir --config $Configuration --target whisper --parallel $Jobs"
-	Write-Host "cmake --install $BuildDir --config $Configuration"
+	Write-Host "install selected whisper runtime artifacts from $BuildDir"
 	Write-Step "Dry run complete; no files were changed"
 	return
 }
@@ -482,7 +586,7 @@ if (!(Test-Path -LiteralPath $SourceDir -PathType Container)) {
 	Invoke-Checked "git clone whisper.cpp" "git" @(
 		"clone", "--recursive", "--depth", "1", "--branch", $Revision, $Repo, $SourceDir)
 } else {
-	Write-Step "whisper.cpp source already exists; skipping clone"
+	Update-WhisperSource -Source $SourceDir -Revision $Revision
 }
 
 if (!$BundledGgml) {
@@ -509,9 +613,7 @@ Invoke-Checked "cmake build whisper.cpp" "cmake" @(
 
 Write-Step "Installing whisper.cpp runtime"
 Clear-InstalledWhisperArtifacts -InstallDir $InstallDir
-Invoke-Checked "cmake install whisper.cpp" "cmake" @(
-	"--install", $BuildDir,
-	"--config", $Configuration)
+Install-WhisperRuntime -BuildDir $BuildDir -SourceDir $SourceDir -InstallDir $InstallDir
 
 Write-WhisperBackendReport `
 	-BuildDir $BuildDir `

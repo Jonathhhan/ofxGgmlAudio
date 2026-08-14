@@ -24,6 +24,7 @@ $script = Join-Path $scriptRoot "build-whisper.ps1"
 Write-Step "whisper.cpp default dry-run"
 $defaultOutput = & $script -DryRun 2>&1 6>&1 | Out-String
 Assert-Contains $defaultOutput "Dry run: whisper.cpp setup plan" "default dry-run"
+Assert-Contains $defaultOutput "revision: v1.9.2" "default dry-run"
 Assert-Contains $defaultOutput "mode: Auto" "default dry-run"
 Assert-Contains $defaultOutput "ggml: ofxGgmlCore" "default dry-run"
 Assert-Contains $defaultOutput "generated ggml package:" "default dry-run"

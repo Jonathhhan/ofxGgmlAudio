@@ -66,6 +66,11 @@ int main(int argc, char ** argv) {
 		std::cerr << "setup failed: " << setupResult.error << "\n";
 		return 1;
 	}
+	const auto runtimeInfo = backend.getRuntimeInfo();
+	std::cout << "OFXGGML_AUDIO_RUNTIME"
+		<< " gpu_requested=" << (runtimeInfo.gpuRequested ? 1 : 0)
+		<< " gpu_available=" << (runtimeInfo.gpuAvailable ? 1 : 0)
+		<< " acceleration=" << runtimeInfo.acceleration << "\n";
 
 	ofxGgmlAudioRollingTranscript rolling;
 	ofxGgmlAudioStreamRequest chunk;

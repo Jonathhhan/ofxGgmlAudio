@@ -36,6 +36,19 @@ function Assert-FileContains {
 	}
 }
 
+function Assert-FileNotContains {
+	param(
+		[string]$Path,
+		[string]$Pattern,
+		[string]$Label
+	)
+
+	$content = Get-Content -LiteralPath $Path -Raw
+	if ($content -match $Pattern) {
+		throw "$Label contained forbidden pattern: $Pattern"
+	}
+}
+
 function Assert-TextContains {
 	param(
 		[string]$Text,
@@ -107,6 +120,12 @@ Assert-Path (Join-Path $addonRoot "src\ofxGgmlAudio\ofxGgmlAudioUtils.h") "utili
 Assert-Path (Join-Path $addonRoot "src\ofxGgmlAudio\ofxGgmlAudioUtils.cpp") "utility source"
 Assert-Path (Join-Path $addonRoot "src\ofxGgmlAudio\ofxGgmlAudioWhisperBackend.h") "Whisper backend header"
 Assert-Path (Join-Path $addonRoot "src\ofxGgmlAudio\ofxGgmlAudioWhisperBackend.cpp") "Whisper backend source"
+Assert-FileContains (Join-Path $addonRoot "scripts\build-whisper.ps1") '\$Revision = "v1\.9\.2"' "whisper.cpp build revision"
+Assert-FileContains (Join-Path $addonRoot "scripts\build-whisper.ps1") 'Update-WhisperSource -Source \$SourceDir -Revision \$Revision' "whisper.cpp existing source revision update"
+Assert-FileContains (Join-Path $addonRoot "scripts\build-whisper.ps1") '@\("tag", "--points-at", "HEAD"\)' "whisper.cpp safe revision inspection"
+Assert-FileContains (Join-Path $addonRoot "scripts\build-whisper.ps1") 'refs/tags/.*refs/tags/' "whisper.cpp persistent version tag fetch"
+Assert-FileContains (Join-Path $addonRoot "scripts\build-whisper.ps1") 'Install-WhisperRuntime -BuildDir \$BuildDir -SourceDir \$SourceDir -InstallDir \$InstallDir' "focused whisper.cpp runtime install"
+Assert-FileNotContains (Join-Path $addonRoot "scripts\build-whisper.ps1") 'cmake --install' "unscoped upstream whisper.cpp install"
 
 Write-Step "Checking dependency layout"
 Assert-Path (Join-Path $addonsRoot "ofxGgmlCore") "sibling ofxGgmlCore addon" -Directory
