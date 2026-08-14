@@ -284,6 +284,7 @@ void ofApp::draw() {
 	ImGui::EndChild();
 	ImGui::End();
 	gui.end();
+	gui.draw();
 }
 
 void ofApp::keyPressed(int key) {

@@ -286,6 +286,7 @@ void ofApp::draw() {
 
 	ImGui::End();
 	gui.end();
+	gui.draw();
 }
 
 void ofApp::startTranscription() {
